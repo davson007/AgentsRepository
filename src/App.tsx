@@ -4,7 +4,7 @@ import { SectionContainer } from '@/components/sections/section-container';
 import { SectionGrid } from '@/components/sections/section-grid';
 import { HomePage } from '@/components/home-page';
 import { GradientLayout } from '@/components/layouts/gradient-layout';
-import { usePersonas } from '@/features/personas';
+import { usePersonas } from '@/hooks/use-personas';
 import type { SectionId } from '@/constants/navigation';
 
 function App() {
@@ -22,15 +22,18 @@ function App() {
   if (!activeSection) {
     return <HomePage onSectionSelect={handleSectionSelect} />;
   }
+
   // Get items based on active section
   let items: any[] = [];
   if (activeSection === 'personas') {
-    console.log('Personas query state:', {
-      isLoading: personas.isLoading,
-      isError: personas.isError,
-      error: personas.error,
-      data: personas.data
-    });
+    if (personas.isLoading) {
+      return <div>Loading...</div>;
+    }
+
+    if (personas.isError) {
+      return <div>Error: {personas.error?.message}</div>;
+    }
+
     items = personas.data || [];
   }
 

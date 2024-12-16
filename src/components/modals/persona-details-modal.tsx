@@ -1,29 +1,19 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { PersonaForm } from "./persona-form";
 import { PersonaView } from "./persona-view";
 import { Pencil, Plus, Trash2 } from "lucide-react";
-import type { PersonaFormData, PersonaVersion } from "@/types/personas";
+import { Entity, EntityVersion } from '@/types/entities';
+import { toast } from "@/components/ui/use-toast";
 import '@/styles/fonts.css';
 
 interface PersonaDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (id: string, data: PersonaFormData) => Promise<void>;
-  item?: {
-    id: string;
-    name: string;
-    version: string;
-    description: string;
-    mainObjective: string;
-    systemPrompt: string;
-    userPromptTemplate: string;
-    notes: string;
-    picture: string;
-    versions?: PersonaVersion[];
-  };
+  onSave: (id: string, data: Entity) => Promise<void>;
+  item: Entity;
 }
 
 export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDetailsModalProps) {
@@ -31,51 +21,36 @@ export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDe
   const [selectedVersion, setSelectedVersion] = useState(item?.version || 'v1.0');
   const [isSaving, setIsSaving] = useState(false);
   
-  const initialFormData = useMemo(() => ({
-    name: item?.name || '',
-    version: item?.version || 'v1.0',
-    description: item?.description || '',
-    mainObjective: item?.mainObjective || '',
-    systemPrompt: item?.systemPrompt || '',
-    userPromptTemplate: item?.userPromptTemplate || '',
-    notes: item?.notes || '',
-    picture: item?.picture || ''
-  }), [item]);
+  const getCurrentVersionData = (): Entity => {
+    return {
+      id: item?.id || '',
+      name: item?.name || '',
+      version: selectedVersion,
+      description: item?.description || '',
+      mainObjective: item?.mainObjective || '',
+      systemPrompt: item?.systemPrompt || '',
+      userPromptTemplate: item?.userPromptTemplate || '',
+      notes: item?.notes || '',
+      picture: item?.picture || ''
+    };
+  };
 
-  const [formData, setFormData] = useState<PersonaFormData>(() => {
-    if (item?.versions?.length) {
-      const latestVersion = item.versions[item.versions.length - 1];
-      return latestVersion.data;
-    }
-    return initialFormData;
-  });
+  const [formData, setFormData] = useState<Entity>(getCurrentVersionData());
   
-  // Update form data when item changes
   useEffect(() => {
-    if (!item) return;
-    
-    const currentVersionData = item.versions?.find(v => v.version === selectedVersion)?.data;
-    if (currentVersionData) {
-      setFormData(currentVersionData);
-    } else if (item.versions?.length) {
-      const latestVersion = item.versions[item.versions.length - 1];
-      setSelectedVersion(latestVersion.version);
-      setFormData(latestVersion.data);
-    } else {
-      setFormData(initialFormData);
+    if (item) {
+      setSelectedVersion(item.version || 'v1.0');
+      setIsEditing(!item.id);
+      setFormData(getCurrentVersionData());
     }
-  }, [item, selectedVersion, initialFormData]);
+  }, [item]);
 
-  useEffect(() => {
-    console.log('Item changed:', item);
-    console.log('Current formData:', formData);
-    console.log('Selected version:', selectedVersion);
-  }, [item, formData, selectedVersion]);
-
-  const versions = item?.versions?.map(v => ({
-    value: v.version,
-    label: v.version
-  })) || [{ value: 'v1.0', label: 'v1.0' }];
+  const versions = Array.isArray(item?.versions) 
+    ? item.versions.map((v: EntityVersion) => ({
+        value: v.version,
+        label: v.version
+      })) 
+    : [{ value: 'v1.0', label: 'v1.0' }];
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -83,11 +58,12 @@ export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDe
 
   const handleVersionChange = (version: string) => {
     setSelectedVersion(version);
-    const versionData = item?.versions?.find(v => v.version === version)?.data;
+    const versionData = item?.versions?.find((v: EntityVersion) => v.version === version)?.data;
     if (versionData) {
-      setFormData(versionData);
-    } else {
-      setFormData(initialFormData);
+      setFormData({
+        ...formData,
+        ...versionData
+      });
     }
   };
 
@@ -96,39 +72,40 @@ export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDe
     
     setIsSaving(true);
     try {
-      const currentVersion = item.versions?.find(v => v.version === selectedVersion);
-      const updatedVersions = currentVersion
-        ? item.versions?.map(v => v.version === selectedVersion ? { ...v, data: formData } : v)
+      const currentVersion = item.versions?.find((v: EntityVersion) => v.version === selectedVersion);
+      const updatedVersions: EntityVersion[] = currentVersion
+        ? (item.versions?.map((v: EntityVersion) => 
+            v.version === selectedVersion 
+              ? { version: v.version, data: formData } 
+              : v
+          ) || [])
         : [...(item.versions || []), { version: selectedVersion, data: formData }];
       
-      const updateData: PersonaFormData = {
+      const updateData: Entity = {
         ...formData,
-        version: selectedVersion,
-        versions: updatedVersions,
-        name: formData.name || '',
-        description: formData.description || '',
-        mainObjective: formData.mainObjective || '',
-        systemPrompt: formData.systemPrompt || '',
-        userPromptTemplate: formData.userPromptTemplate || '',
-        notes: formData.notes || '',
-        picture: formData.picture || ''
+        versions: updatedVersions
       };
 
       await onSave(item.id, updateData);
+      setIsEditing(false);
+      toast({
+        title: "Success",
+        description: "Persona updated successfully",
+        variant: "default",
+      });
     } catch (error) {
       console.error('Failed to save:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update persona",
+        variant: "destructive",
+      });
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleNewVersion = () => {
-    const newVersion = `v${(parseFloat(selectedVersion.replace('v', '')) + 0.1).toFixed(1)}`;
-    setSelectedVersion(newVersion);
-    setFormData({
-      ...formData,
-      version: newVersion
-    });
     setIsEditing(true);
   };
 
@@ -145,37 +122,37 @@ export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDe
     setIsEditing(false);
   };
 
-  const renderContent = () => {
-    if (!item) return null;
-    
-    return isEditing ? (
-      <PersonaForm
-        data={formData}
-        onChange={handleChange}
-        isNewVersion={false}
-      />
-    ) : (
-      <PersonaView 
-        data={formData}
-        versions={versions}
-        currentVersion={selectedVersion}
-        onVersionChange={handleVersionChange}
-      />
-    );
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl bg-[#FBF9FC]/95 backdrop-blur-md border-[#F58C5D]/20">
+      <DialogContent 
+        className="max-w-3xl bg-[#FBF9FC]/95 backdrop-blur-md border-[#F58C5D]/20"
+        aria-describedby="persona-modal-description"
+      >
         <DialogHeader>
           <DialogTitle className="text-xl font-nord-bold text-[#383244]">
             {item?.name || ''}
           </DialogTitle>
+          <DialogDescription id="persona-modal-description">
+            Details and configuration for the {item?.name} persona
+          </DialogDescription>
         </DialogHeader>
         
         <ScrollArea className="max-h-[70vh] pr-4">
           <div className="space-y-6 p-2">
-            {renderContent()}
+            {isEditing ? (
+              <PersonaForm
+                data={formData}
+                onChange={handleChange}
+                isNewVersion={false}
+              />
+            ) : (
+              <PersonaView 
+                data={formData}
+                versions={versions}
+                currentVersion={selectedVersion}
+                onVersionChange={handleVersionChange}
+              />
+            )}
 
             <div className="flex justify-end gap-3 pt-4">
               {!isEditing ? (

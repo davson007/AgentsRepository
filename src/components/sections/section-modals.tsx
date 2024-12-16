@@ -1,53 +1,52 @@
-import { type ReactNode } from 'react';
 import { ItemDetailsModal } from "@/components/modals/item-details-modal";
 import { PersonaDetailsModal } from "@/components/modals/persona-details-modal";
 import { usePersonas } from '@/features/personas';
-import type { PersonaFormData } from '@/types/personas';
-
-interface Entity {
-  id: string;
-  name: string;
-  version: string;
-  description: string;
-  mainObjective: string;
-  systemPrompt: string;
-  userPromptTemplate: string;
-  notes: string;
-  picture: string;
-  versions?: Array<{
-    version: string;
-    data: PersonaFormData;
-  }>;
-}
+import { Entity } from '../../types/entities';
 
 interface SectionModalsProps {
-  selectedItem: AIPersona | null;
+  selectedItem: Entity | null;
   showPersonaForm: boolean;
   onClose: () => void;
-  children?: ReactNode;
+  title: string;
 }
 
 export function SectionModals({
   selectedItem,
   showPersonaForm,
   onClose,
+  title
 }: SectionModalsProps) {
+  console.log('SectionModals - props:', {
+    selectedItem,
+    showPersonaForm,
+    title
+  });
+
   const { updatePersona } = usePersonas();
 
-  const handleSave = async (id: string, updatedData: PersonaFormData) => {
+  const handleSave = async (id: string, updatedData: Entity) => {
+    console.log('SectionModals - handleSave:', {
+      id,
+      updatedData
+    });
+
     if (updatePersona.isPending) return;
     
     try {
-      await updatePersona.mutateAsync({ id, data });
+      await updatePersona.mutateAsync({ id, data: updatedData });
       onClose();
     } catch (error) {
-      // Error handling is in the mutation
+      console.error('Error updating persona:', error);
     }
   };
 
-  if (!selectedItem) return null;
+  if (!selectedItem) {
+    console.log('SectionModals - no selectedItem, returning null');
+    return null;
+  }
 
-  if (showPersonaForm) {
+  if (title.toLowerCase() === 'personas' && showPersonaForm) {
+    console.log('SectionModals - rendering PersonaDetailsModal');
     return (
       <PersonaDetailsModal
         isOpen={true}
@@ -58,6 +57,7 @@ export function SectionModals({
     );
   }
 
+  console.log('SectionModals - rendering ItemDetailsModal');
   return (
     <ItemDetailsModal
       isOpen={true}

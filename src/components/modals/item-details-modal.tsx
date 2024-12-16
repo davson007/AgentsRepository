@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { ModalSection } from './sections/modal-section';
@@ -19,11 +19,17 @@ interface ItemDetailsModalProps {
 export function ItemDetailsModal({ isOpen, onClose, item }: ItemDetailsModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-[#FBF9FC]/95 backdrop-blur-md border-[#F58C5D]/20">
+      <DialogContent 
+        className="max-w-3xl bg-[#FBF9FC]/95 backdrop-blur-md border-[#F58C5D]/20"
+        aria-describedby="item-modal-description"
+      >
         <DialogHeader>
-          <DialogTitle className="text-lg font-nord-bold text-[#383244]">
-            {item.name}
+          <DialogTitle className="text-xl font-nord-bold text-[#383244]">
+            {item?.name || ''}
           </DialogTitle>
+          <DialogDescription id="item-modal-description">
+            Details and configuration for {item?.name}
+          </DialogDescription>
         </DialogHeader>
         
         <ScrollArea className="max-h-[60vh] pr-4">

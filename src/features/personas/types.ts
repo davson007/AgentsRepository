@@ -1,23 +1,4 @@
-export interface PersonaFormData {
-  name: string;
-  version: string;
-  description: string;
-  mainObjective: string;
-  systemPrompt: string;
-  userPromptTemplate: string;
-  notes: string;
-  picture: string;
-}
-
-export interface PersonaVersion {
-  version: string;
-  data: PersonaFormData;
-}
-
-export interface AIPersona extends PersonaFormData {
-  id: string;
-  versions: PersonaVersion[];
-}
+import { Entity } from '../../types/entities';
 
 export interface Version {
   value: string;
@@ -31,6 +12,23 @@ export function getLatestVersion(currentVersion: string): string {
   return `v${(version + 0.1).toFixed(1)}`;
 }
 
-export interface PersonaUpdates extends PersonaFormData {
-  versions: PersonaVersion[];
-}
+export type AIPersona = Entity;
+
+export type DefinedInitialDataOptions<T> = {
+  queryFn: () => Promise<T>;
+  queryKey: string[];
+};
+
+export type UseQueryOptions<T> = {
+  queryFn: () => Promise<T>;
+  queryKey: string[];
+};
+
+export type UseMutationOptions<T> = {
+  mutationFn: (params: { id: string; data: T }) => Promise<T>;
+};
+
+export type UpdatePersonaParams = {
+  id: string;
+  data: Entity;
+};

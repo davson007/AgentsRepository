@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { PersonaFormData, PersonaVersion } from '../types';
+import { Entity, EntityVersion } from '../../../types/entities';
 import { INITIAL_VERSION } from '../types';
 
 interface UsePersonaFormProps {
@@ -9,7 +9,9 @@ interface UsePersonaFormProps {
   mainObjective?: string;
   systemPrompt?: string;
   userPromptTemplate?: string;
-  versions?: PersonaVersion[];
+  notes?: string;
+  picture?: string;
+  versions?: EntityVersion[];
 }
 
 export function usePersonaForm(initialData?: UsePersonaFormProps) {
@@ -24,10 +26,11 @@ export function usePersonaForm(initialData?: UsePersonaFormProps) {
     mainObjective: initialData?.mainObjective || '',
     systemPrompt: initialData?.systemPrompt || '',
     userPromptTemplate: initialData?.userPromptTemplate || '',
-    notes: '',
+    notes: initialData?.notes || '',
+    picture: initialData?.picture || '',
   };
 
-  const [formData, setFormData] = useState<PersonaFormData>(currentVersionData);
+  const [formData, setFormData] = useState<Omit<Entity, 'id' | 'versions'>>(currentVersionData);
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));

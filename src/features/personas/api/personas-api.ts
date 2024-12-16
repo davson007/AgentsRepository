@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import type { PersonaFormData, PersonaVersion } from '@/types/personas';
+import { Entity, EntityVersion } from '../../../types/entities';
 
 // Define the exact type that matches Supabase's response
 type DatabasePersonaResponse = {
@@ -15,23 +15,10 @@ type DatabasePersonaResponse = {
   picture: string | null;
   notes: string | null;
   version: string;
-  versions: PersonaVersion[] | null;
+  versions: EntityVersion[] | null;
 }
 
-// Define the type for updates to match PersonaFormData
-type PersonaUpdates = {
-  name: string;
-  description: string;
-  mainObjective: string;
-  systemPrompt: string;
-  userPromptTemplate: string;
-  picture?: string;
-  notes?: string;
-  version: string;
-  versions?: PersonaVersion[];
-}
-
-function transformDatabaseToAppPersona(dbPersona: DatabasePersonaResponse): PersonaFormData & { id: string } {
+function transformDatabaseToAppPersona(dbPersona: DatabasePersonaResponse): Entity {
   return {
     id: dbPersona.id,
     name: dbPersona.name,
@@ -46,7 +33,7 @@ function transformDatabaseToAppPersona(dbPersona: DatabasePersonaResponse): Pers
   };
 }
 
-export async function getPersonas(): Promise<(PersonaFormData & { id: string })[]> {
+export async function getPersonas(): Promise<Entity[]> {
   try {
     const { data, error } = await supabase
       .from('ai_personas')
@@ -63,7 +50,7 @@ export async function getPersonas(): Promise<(PersonaFormData & { id: string })[
   }
 }
 
-export async function getPersonaById(id: string): Promise<PersonaFormData & { id: string }> {
+export async function getPersonaById(id: string): Promise<Entity> {
   if (!id) throw new Error('Invalid persona ID');
   
   try {
@@ -83,7 +70,7 @@ export async function getPersonaById(id: string): Promise<PersonaFormData & { id
   }
 }
 
-export async function createPersona(persona: PersonaUpdates): Promise<PersonaFormData & { id: string }> {
+export async function createPersona(persona: Omit<Entity, 'id'>): Promise<Entity> {
   try {
     const { data, error } = await supabase
       .from('ai_personas')
@@ -95,7 +82,7 @@ export async function createPersona(persona: PersonaUpdates): Promise<PersonaFor
         user_prompt_template: persona.userPromptTemplate,
         picture: persona.picture || '',
         notes: persona.notes || '',
-        version: persona.version || 'v1.0',
+        version: persona.version,
         versions: persona.versions || []
       }])
       .select()
@@ -111,7 +98,7 @@ export async function createPersona(persona: PersonaUpdates): Promise<PersonaFor
   }
 }
 
-export async function updatePersona(id: string, updates: PersonaUpdates): Promise<PersonaFormData & { id: string }> {
+export async function updatePersona(id: string, updates: Entity): Promise<Entity> {
   if (!id) throw new Error('Invalid persona ID format');
   
   try {
@@ -132,19 +119,10 @@ export async function updatePersona(id: string, updates: PersonaUpdates): Promis
       .select()
       .single();
 
-    if (error) {
-      console.error('Supabase update error:', error);
-      throw new Error(`Failed to update persona: ${error.message}`);
-    }
-    
-    if (!data) {
-      console.error('No data returned from update');
-      throw new Error('Failed to update persona: No data returned');
-    }
+    if (error) throw new Error(`Failed to update persona: ${error.message}`);
+    if (!data) throw new Error('Failed to update persona: No data returned');
 
-    const transformed = transformDatabaseToAppPersona(data as DatabasePersonaResponse);
-    console.log('Successfully updated persona:', transformed);
-    return transformed;
+    return transformDatabaseToAppPersona(data as DatabasePersonaResponse);
   } catch (error) {
     console.error('Error updating persona:', error);
     throw error;

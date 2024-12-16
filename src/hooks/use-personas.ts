@@ -1,32 +1,31 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import * as personasService from '@/services/personas';
-import type { AIPersona } from '@/types';
+import { Entity } from '@/types/entities';
+import { getPersonas, updatePersona as updatePersonaApi, createPersona as createPersonaApi, deletePersona as deletePersonaApi } from '@/features/personas/api/personas-api';
 
 export function usePersonas() {
   const queryClient = useQueryClient();
 
   const personas = useQuery({
     queryKey: ['personas'],
-    queryFn: personasService.getPersonas,
+    queryFn: getPersonas
   });
 
-  const updatePersona = useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Partial<AIPersona> }) =>
-      personasService.updatePersona(id, updates),
+  const updatePersona = useMutation<Entity, Error, { id: string; data: Entity }>({
+    mutationFn: ({ id, data }) => updatePersonaApi(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['personas'] });
     },
   });
 
-  const createPersona = useMutation({
-    mutationFn: personasService.createPersona,
+  const createPersona = useMutation<Entity, Error, Omit<Entity, 'id'>>({
+    mutationFn: createPersonaApi,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['personas'] });
     },
   });
 
-  const deletePersona = useMutation({
-    mutationFn: personasService.deletePersona,
+  const deletePersona = useMutation<void, Error, string>({
+    mutationFn: deletePersonaApi,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['personas'] });
     },
