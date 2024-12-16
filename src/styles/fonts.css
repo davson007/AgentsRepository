@@ -1,0 +1,54 @@
+@font-face {
+  font-family: 'NORD';
+  src: url('../assets/fonts/NORD-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'NORD';
+  src: url('../assets/fonts/NORD-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'NORD';
+  src: url('../assets/fonts/NORD-Book.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Fougie';
+  src: url('../assets/fonts/Fougie.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.font-nord {
+  font-family: 'NORD', system-ui, -apple-system, sans-serif;
+}
+
+.font-nord-bold {
+  font-family: 'NORD', system-ui, -apple-system, sans-serif;
+  font-weight: 700;
+}
+
+.font-nord-regular {
+  font-family: 'NORD', system-ui, -apple-system, sans-serif;
+  font-weight: 400;
+}
+
+.font-nord-book {
+  font-family: 'NORD', system-ui, -apple-system, sans-serif;
+  font-weight: 300;
+}
+
+.font-fougie {
+  font-family: 'Fougie', system-ui, -apple-system, sans-serif;
+}

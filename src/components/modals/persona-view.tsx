@@ -1,0 +1,81 @@
+import { ModalSection } from './sections/modal-section';
+import { VersionSelector } from './version-selector';
+import type { PersonaFormData, Version } from "@/types/personas";
+import '@/styles/fonts.css';
+
+interface PersonaViewProps {
+  data: PersonaFormData;
+  versions: Version[];
+  currentVersion: string;
+  onVersionChange: (version: string) => void;
+}
+
+export function PersonaView({ data, versions, currentVersion, onVersionChange }: PersonaViewProps) {
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-4">
+        <ModalSection title="Persona Name">
+          <p className="text-base font-fougie text-[#383244]">{data.name}</p>
+        </ModalSection>
+
+        <ModalSection title="Version">
+          <VersionSelector
+            versions={versions}
+            currentVersion={currentVersion}
+            onVersionChange={onVersionChange}
+          />
+        </ModalSection>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <ModalSection title="Description">
+          <p className="text-base font-fougie text-[#383244] whitespace-pre-wrap">
+            {data.description}
+          </p>
+        </ModalSection>
+
+        <ModalSection title="Picture">
+          {data.picture ? (
+            <div className="w-32 h-32 rounded-lg overflow-hidden">
+              <img 
+                src={data.picture} 
+                alt={data.name} 
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="w-32 h-32 bg-white/50 rounded-lg flex items-center justify-center">
+              <span className="text-base font-fougie text-[#383244]/50">
+                No image
+              </span>
+            </div>
+          )}
+        </ModalSection>
+      </div>
+
+      <ModalSection title="Main Objective">
+        <p className="text-base font-fougie text-[#383244] whitespace-pre-wrap">
+          {data.mainObjective}
+        </p>
+      </ModalSection>
+
+      <ModalSection title="System Prompt">
+        <p className="text-base font-fougie text-[#383244] whitespace-pre-wrap">
+          {data.systemPrompt}
+        </p>
+      </ModalSection>
+
+      <ModalSection title="User Prompt Template">
+        <p className="text-base font-fougie text-[#383244] whitespace-pre-wrap">
+          {data.userPromptTemplate}
+        </p>
+      </ModalSection>
+
+      <ModalSection title="Notes">
+        <p className="text-base font-fougie text-[#383244] whitespace-pre-wrap">
+          {data.notes || 'No notes added yet.'}
+        </p>
+      </ModalSection>
+    </div>
+  );
+}
