@@ -6,10 +6,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 
 interface PersonaViewProps {
   data: PersonaFormData;
-  versions: Array<{
-    value: string;
-    label: string;
-  }>;
+  versions: Version[];
   currentVersion: string;
   onVersionChange: (version: string) => void;
 }
