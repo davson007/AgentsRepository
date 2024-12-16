@@ -4,7 +4,7 @@ import { GridLayout } from "@/components/ui/grid-layout";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { SectionModals } from './section-modals';
-import { Entity } from '@/types/entities';
+import { Entity } from '../../types/entities';
 import '@/styles/fonts.css';
 
 interface SectionGridProps {

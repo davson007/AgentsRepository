@@ -1,11 +1,10 @@
 import { ItemDetailsModal } from "@/components/modals/item-details-modal";
 import { PersonaDetailsModal } from "@/components/modals/persona-details-modal";
 import { usePersonas } from '@/features/personas';
-import type { PersonaFormData } from '@/types/personas';
-import { Entity } from '@/types/entities';
+import { Entity } from '../../types/entities';
 
 interface SectionModalsProps {
-  selectedItem: AIPersona | null;
+  selectedItem: Entity | null;
   showPersonaForm: boolean;
   onClose: () => void;
   title: string;
@@ -25,7 +24,7 @@ export function SectionModals({
 
   const { updatePersona } = usePersonas();
 
-  const handleSave = async (id: string, updatedData: PersonaFormData) => {
+  const handleSave = async (id: string, updatedData: Entity) => {
     console.log('SectionModals - handleSave:', {
       id,
       updatedData
@@ -34,7 +33,7 @@ export function SectionModals({
     if (updatePersona.isPending) return;
     
     try {
-      await updatePersona.mutateAsync({ id, data });
+      await updatePersona.mutateAsync({ id, data: updatedData });
       onClose();
     } catch (error) {
       console.error('Error updating persona:', error);

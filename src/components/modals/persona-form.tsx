@@ -3,11 +3,11 @@ import { ImageUpload } from './image-upload';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import type { PersonaFormData } from "@/types/personas";
+import { Entity } from '@/types/entities';
 import '@/styles/fonts.css';
 
 interface PersonaFormProps {
-  data: PersonaFormData;
+  data: Entity;
   onChange: (field: string, value: string) => void;
   isNewVersion?: boolean;
 }
