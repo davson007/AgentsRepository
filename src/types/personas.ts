@@ -1,13 +1,12 @@
 export interface PersonaFormData {
   name: string;
   version: string;
+  picture?: string;
   description: string;
   mainObjective: string;
   systemPrompt: string;
   userPromptTemplate: string;
-  notes: string;
-  picture: string;
-  versions?: PersonaVersion[];
+  notes?: string;
 }
 
 export interface PersonaVersion {

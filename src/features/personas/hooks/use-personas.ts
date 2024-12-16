@@ -14,24 +14,21 @@ export function usePersonas() {
     refetchOnWindowFocus: false,
   });
 
-  const updatePersonaMutation = useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: PersonaFormData }) => 
+  const updatePersona = useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<AIPersona> }) =>
       personasApi.updatePersona(id, updates),
     onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['personas'],
-        exact: true 
-      });
+      queryClient.invalidateQueries({ queryKey: ['personas'] });
       toast({
-        title: "Success",
-        description: "Persona updated successfully",
+        title: 'Success',
+        description: 'Persona updated successfully',
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to update persona",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Failed to update persona',
+        variant: 'destructive',
       });
     },
   });
@@ -74,7 +71,7 @@ export function usePersonas() {
 
   return {
     personas,
-    updatePersona: updatePersonaMutation,
+    updatePersona,
     createPersona,
     deletePersona,
   };
