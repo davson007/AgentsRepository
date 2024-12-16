@@ -12,7 +12,7 @@ export interface PersonaFormData {
 
 export interface PersonaVersion {
   version: string;
-  data: PersonaFormData;
+  data: Omit<PersonaFormData, 'versions'>;
 }
 
 export interface Version {

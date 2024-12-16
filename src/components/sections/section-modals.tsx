@@ -2,26 +2,10 @@ import { type ReactNode } from 'react';
 import { ItemDetailsModal } from "@/components/modals/item-details-modal";
 import { PersonaDetailsModal } from "@/components/modals/persona-details-modal";
 import { usePersonas } from '@/features/personas';
-import type { PersonaFormData } from '@/types/personas';
-
-interface Entity {
-  id: string;
-  name: string;
-  version: string;
-  description: string;
-  mainObjective: string;
-  systemPrompt: string;
-  userPromptTemplate: string;
-  notes: string;
-  picture: string;
-  versions?: Array<{
-    version: string;
-    data: PersonaFormData;
-  }>;
-}
+import type { PersonaFormData, AIPersona } from '@/features/personas/types';
 
 interface SectionModalsProps {
-  selectedItem: Entity | null;
+  selectedItem: AIPersona | null;
   showPersonaForm: boolean;
   onClose: () => void;
   children?: ReactNode;
@@ -34,14 +18,14 @@ export function SectionModals({
 }: SectionModalsProps) {
   const { updatePersona } = usePersonas();
 
-  const handleSave = async (id: string, updatedData: PersonaFormData) => {
+  const handleSave = async (id: string, data: PersonaFormData) => {
     if (updatePersona.isPending) return;
     
     try {
-      await updatePersona.mutateAsync({ id, updates: updatedData });
+      await updatePersona.mutateAsync({ id, data });
       onClose();
     } catch (error) {
-      // Error handling is in the mutation
+      console.error('Failed to save:', error);
     }
   };
 

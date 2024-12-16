@@ -1,40 +1,63 @@
 import { ModalSection } from './sections/modal-section';
-import { VersionSelector } from './version-selector';
 import { CopyButton } from "@/components/ui/copy-button";
-import type { PersonaFormData, Version } from "@/types/personas";
+import type { PersonaFormData, PersonaVersion } from "@/types/personas";
 import '@/styles/fonts.css';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 interface PersonaViewProps {
   data: PersonaFormData;
-  versions: Version[];
+  versions: PersonaVersion[];
   currentVersion: string;
   onVersionChange: (version: string) => void;
 }
 
-export function PersonaView({ data, versions, currentVersion, onVersionChange }: PersonaViewProps) {
+export function PersonaView({ data, versions = [], currentVersion, onVersionChange }: PersonaViewProps) {
+  const sortedVersions = [...versions].sort((a, b) => {
+    const aNum = parseFloat(a.version.replace('v', ''));
+    const bNum = parseFloat(b.version.replace('v', ''));
+    return bNum - aNum;
+  });
+
+  const versionOptions = sortedVersions.length > 0 
+    ? sortedVersions.map(v => ({
+        value: v.version,
+        label: v.version
+      }))
+    : [{ value: currentVersion, label: currentVersion }];
+
   return (
     <div className="space-y-6">
+      <ModalSection title="Version">
+        <Select
+          value={currentVersion}
+          onValueChange={onVersionChange}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select version" />
+          </SelectTrigger>
+          <SelectContent>
+            {versionOptions.map(option => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.value}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </ModalSection>
+
       <div className="grid grid-cols-2 gap-4">
         <ModalSection title="Persona Name">
           <p className="text-base font-fougie text-[#383244]">{data.name}</p>
         </ModalSection>
 
-        <ModalSection title="Version">
-          <VersionSelector
-            versions={versions}
-            currentVersion={currentVersion}
-            onVersionChange={onVersionChange}
-          />
-        </ModalSection>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
         <ModalSection title="Description">
           <p className="text-base font-fougie text-[#383244] whitespace-pre-wrap">
             {data.description}
           </p>
         </ModalSection>
+      </div>
 
+      <div className="grid grid-cols-2 gap-4">
         <ModalSection title="Picture">
           {data.picture ? (
             <div className="w-32 h-32 rounded-lg overflow-hidden">
@@ -52,21 +75,21 @@ export function PersonaView({ data, versions, currentVersion, onVersionChange }:
             </div>
           )}
         </ModalSection>
-      </div>
 
-      <ModalSection 
-        title="Main Objective"
-        headerContent={
-          <CopyButton 
-            text={data.mainObjective}
-            className="h-5 w-5 text-[#383244]/70 hover:text-[#F58C5D]"
-          />
-        }
-      >
-        <p className="text-base font-fougie text-[#383244] whitespace-pre-wrap">
-          {data.mainObjective}
-        </p>
-      </ModalSection>
+        <ModalSection 
+          title="Main Objective"
+          headerContent={
+            <CopyButton 
+              text={data.mainObjective}
+              className="h-5 w-5 text-[#383244]/70 hover:text-[#F58C5D]"
+            />
+          }
+        >
+          <p className="text-base font-fougie text-[#383244] whitespace-pre-wrap">
+            {data.mainObjective}
+          </p>
+        </ModalSection>
+      </div>
 
       <ModalSection 
         title="System Prompt"
