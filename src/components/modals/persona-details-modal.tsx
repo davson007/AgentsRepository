@@ -8,6 +8,7 @@ import { Pencil, Plus, Trash2 } from "lucide-react";
 import { Entity, EntityVersion } from '@/types/entities';
 import { toast } from "@/components/ui/use-toast";
 import '@/styles/fonts.css';
+import { getLatestVersion } from '@/features/personas/types';
 
 interface PersonaDetailsModalProps {
   isOpen: boolean;
@@ -70,16 +71,36 @@ export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDe
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const updatedVersions = item.id 
-        ? (item.versions || []).map(v => 
-            v.version === selectedVersion 
-              ? { version: selectedVersion, data: formData }
-              : v
-          )
-        : [{ version: selectedVersion, data: formData }];
+      const versionData = {
+        name: formData.name,
+        version: selectedVersion,
+        description: formData.description,
+        mainObjective: formData.mainObjective,
+        systemPrompt: formData.systemPrompt,
+        userPromptTemplate: formData.userPromptTemplate,
+        notes: formData.notes || '',
+        picture: ''
+      };
+
+      let updatedVersions = item.versions || [];
+      const existingVersionIndex = updatedVersions.findIndex(v => v.version === selectedVersion);
+
+      if (existingVersionIndex >= 0) {
+        updatedVersions[existingVersionIndex] = {
+          version: selectedVersion,
+          data: versionData
+        };
+      } else {
+        updatedVersions = [
+          ...updatedVersions,
+          { version: selectedVersion, data: versionData }
+        ];
+      }
 
       const updateData: Entity = {
-        ...formData,
+        id: item.id,
+        ...versionData,
+        picture: formData.picture || '',
         versions: updatedVersions
       };
 
@@ -103,6 +124,34 @@ export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDe
   };
 
   const handleNewVersion = () => {
+    const newVersion = getLatestVersion(selectedVersion);
+    
+    const newVersionData = {
+      name: formData.name,
+      version: newVersion,
+      description: formData.description,
+      mainObjective: formData.mainObjective,
+      systemPrompt: formData.systemPrompt,
+      userPromptTemplate: formData.userPromptTemplate,
+      notes: formData.notes || '',
+      picture: ''
+    };
+
+    const updatedVersions = [
+      ...(item.versions || []),
+      { 
+        version: newVersion, 
+        data: newVersionData 
+      }
+    ];
+
+    setFormData({
+      ...formData,
+      version: newVersion,
+      versions: updatedVersions
+    });
+    
+    setSelectedVersion(newVersion);
     setIsEditing(true);
   };
 
@@ -201,5 +250,5 @@ export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDe
         </ScrollArea>
       </DialogContent>
     </Dialog>
-  );
+  );  
 }

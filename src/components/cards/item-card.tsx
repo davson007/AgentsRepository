@@ -40,18 +40,20 @@ export function ItemCard({
       )}
       onClick={handleClick}
     >
-      <div className="h-32 bg-[#F5DEAE]/10 flex items-center justify-center relative">
+      <div className="relative aspect-square overflow-hidden bg-[#F5DEAE]/10">
         {picture ? (
           <img
             src={picture}
             alt={title}
-            className="w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover"
           />
         ) : (
-          <div className="w-16 h-16 bg-[#FBF9FC]/80 backdrop-blur-sm rounded-full flex items-center justify-center">
-            <span className="text-xl font-nord-regular text-[#F58C5D]">
-              {title.charAt(0)}
-            </span>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-16 h-16 bg-[#FBF9FC]/80 backdrop-blur-sm rounded-full flex items-center justify-center">
+              <span className="text-xl font-nord-regular text-[#F58C5D]">
+                {title.charAt(0)}
+              </span>
+            </div>
           </div>
         )}
       </div>
