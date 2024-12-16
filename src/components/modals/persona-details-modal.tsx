@@ -12,7 +12,7 @@ import '@/styles/fonts.css';
 interface PersonaDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (id: string, data: Entity) => Promise<void>;
+  onSave: (id: string | null, data: Entity) => Promise<void>;
   item: Entity;
 }
 
@@ -68,36 +68,33 @@ export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDe
   };
 
   const handleSave = async () => {
-    if (!item?.id) return;
-    
     setIsSaving(true);
     try {
-      const currentVersion = item.versions?.find((v: EntityVersion) => v.version === selectedVersion);
-      const updatedVersions: EntityVersion[] = currentVersion
-        ? (item.versions?.map((v: EntityVersion) => 
+      const updatedVersions = item.id 
+        ? (item.versions || []).map(v => 
             v.version === selectedVersion 
-              ? { version: v.version, data: formData } 
+              ? { version: selectedVersion, data: formData }
               : v
-          ) || [])
-        : [...(item.versions || []), { version: selectedVersion, data: formData }];
-      
+          )
+        : [{ version: selectedVersion, data: formData }];
+
       const updateData: Entity = {
         ...formData,
         versions: updatedVersions
       };
 
-      await onSave(item.id, updateData);
+      await onSave(item.id || null, updateData);
       setIsEditing(false);
       toast({
         title: "Success",
-        description: "Persona updated successfully",
+        description: `Persona ${item.id ? 'updated' : 'created'} successfully`,
         variant: "default",
       });
     } catch (error) {
       console.error('Failed to save:', error);
       toast({
         title: "Error",
-        description: "Failed to update persona",
+        description: `Failed to ${item.id ? 'update' : 'create'} persona`,
         variant: "destructive",
       });
     } finally {
