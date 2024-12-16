@@ -2,22 +2,28 @@ import { type ReactNode } from 'react';
 import { ItemDetailsModal } from "@/components/modals/item-details-modal";
 import { PersonaDetailsModal } from "@/components/modals/persona-details-modal";
 import { usePersonas } from '@/features/personas';
-import { toast } from '@/components/ui/use-toast';
 import type { PersonaFormData } from '@/types/personas';
 
 interface Entity {
   id: string;
   name: string;
-  description?: string;
-  [key: string]: any;
+  version: string;
+  description: string;
+  mainObjective: string;
+  systemPrompt: string;
+  userPromptTemplate: string;
+  notes: string;
+  picture: string;
+  versions?: Array<{
+    version: string;
+    data: PersonaFormData;
+  }>;
 }
 
 interface SectionModalsProps {
   selectedItem: Entity | null;
   showPersonaForm: boolean;
   onClose: () => void;
-  onEdit: (id: string) => void;
-  title: string;
   children?: ReactNode;
 }
 
@@ -25,39 +31,17 @@ export function SectionModals({
   selectedItem,
   showPersonaForm,
   onClose,
-  onEdit,
-  title
 }: SectionModalsProps) {
-  const { updatePersona, createPersona } = usePersonas();
+  const { updatePersona } = usePersonas();
 
   const handleSave = async (id: string, updatedData: PersonaFormData) => {
+    if (updatePersona.isPending) return;
+    
     try {
-      if (id) {
-        await updatePersona.mutateAsync({ 
-          id, 
-          updates: updatedData
-        });
-        toast({
-          title: "Success",
-          description: "Persona updated successfully",
-        });
-      } else {
-        await createPersona.mutateAsync(updatedData);
-        toast({
-          title: "Success",
-          description: "Persona created successfully",
-        });
-      }
-      
-      if (id) onEdit(id);
+      await updatePersona.mutateAsync({ id, updates: updatedData });
       onClose();
     } catch (error) {
-      console.error('Failed to update persona:', error);
-      toast({
-        title: "Error",
-        description: `Failed to ${id ? 'update' : 'create'} persona. Please try again.`,
-        variant: "destructive",
-      });
+      // Error handling is in the mutation
     }
   };
 

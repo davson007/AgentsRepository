@@ -1,5 +1,6 @@
 import { ModalSection } from './sections/modal-section';
 import { VersionSelector } from './version-selector';
+import { CopyButton } from "@/components/ui/copy-button";
 import type { PersonaFormData, Version } from "@/types/personas";
 import '@/styles/fonts.css';
 
@@ -53,19 +54,43 @@ export function PersonaView({ data, versions, currentVersion, onVersionChange }:
         </ModalSection>
       </div>
 
-      <ModalSection title="Main Objective">
+      <ModalSection 
+        title="Main Objective"
+        headerContent={
+          <CopyButton 
+            text={data.mainObjective}
+            className="h-5 w-5 text-[#383244]/70 hover:text-[#F58C5D]"
+          />
+        }
+      >
         <p className="text-base font-fougie text-[#383244] whitespace-pre-wrap">
           {data.mainObjective}
         </p>
       </ModalSection>
 
-      <ModalSection title="System Prompt">
+      <ModalSection 
+        title="System Prompt"
+        headerContent={
+          <CopyButton 
+            text={data.systemPrompt}
+            className="h-5 w-5 text-[#383244]/70 hover:text-[#F58C5D]"
+          />
+        }
+      >
         <p className="text-base font-fougie text-[#383244] whitespace-pre-wrap">
           {data.systemPrompt}
         </p>
       </ModalSection>
 
-      <ModalSection title="User Prompt Template">
+      <ModalSection 
+        title="User Prompt Template"
+        headerContent={
+          <CopyButton 
+            text={data.userPromptTemplate}
+            className="h-5 w-5 text-[#383244]/70 hover:text-[#F58C5D]"
+          />
+        }
+      >
         <p className="text-base font-fougie text-[#383244] whitespace-pre-wrap">
           {data.userPromptTemplate}
         </p>

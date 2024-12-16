@@ -15,11 +15,13 @@ interface PersonaDetailsModalProps {
   item?: {
     id: string;
     name: string;
-    version?: string;
+    version: string;
     description: string;
-    mainObjective?: string;
-    systemPrompt?: string;
-    userPromptTemplate?: string;
+    mainObjective: string;
+    systemPrompt: string;
+    userPromptTemplate: string;
+    notes: string;
+    picture: string;
     versions?: PersonaVersion[];
   };
 }
@@ -29,16 +31,16 @@ export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDe
   const [selectedVersion, setSelectedVersion] = useState(item?.version || 'v1.0');
   const [isSaving, setIsSaving] = useState(false);
   
-  const getCurrentVersionData = () => {
+  const getCurrentVersionData = (): PersonaFormData => {
     return {
-      name: item?.name,
+      name: item?.name || '',
       version: selectedVersion,
-      description: item?.description,
-      mainObjective: item?.mainObjective,
-      systemPrompt: item?.systemPrompt,
-      userPromptTemplate: item?.userPromptTemplate,
-      notes: item?.notes,
-      picture: item?.picture
+      description: item?.description || '',
+      mainObjective: item?.mainObjective || '',
+      systemPrompt: item?.systemPrompt || '',
+      userPromptTemplate: item?.userPromptTemplate || '',
+      notes: item?.notes || '',
+      picture: item?.picture || ''
     };
   };
 
@@ -80,13 +82,23 @@ export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDe
         ? item.versions?.map(v => v.version === selectedVersion ? { ...v, data: formData } : v)
         : [...(item.versions || []), { version: selectedVersion, data: formData }];
       
-      await onSave(item.id, {
+      const updateData: PersonaFormData = {
         ...formData,
+        version: selectedVersion,
         versions: updatedVersions,
-      });
-      setIsEditing(false);
+        name: formData.name || '',
+        description: formData.description || '',
+        mainObjective: formData.mainObjective || '',
+        systemPrompt: formData.systemPrompt || '',
+        userPromptTemplate: formData.userPromptTemplate || '',
+        notes: formData.notes || '',
+        picture: formData.picture || ''
+      };
+
+      await onSave(item.id, updateData);
     } catch (error) {
       console.error('Failed to save:', error);
+      throw error;
     } finally {
       setIsSaving(false);
     }
@@ -103,11 +115,9 @@ export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDe
 
   const handleCancel = () => {
     if (!item?.id) {
-      // For new personas, just close the modal
       onClose();
       return;
     }
-    // For existing personas, switch back to view mode
     setIsEditing(false);
   };
 
