@@ -4,16 +4,8 @@ import { GridLayout } from "@/components/ui/grid-layout";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { SectionModals } from './section-modals';
-import { usePersonas } from '@/features/personas';
+import { Entity } from '@/types/entities';
 import '@/styles/fonts.css';
-
-interface Entity {
-  id: string;
-  name: string;
-  description?: string;
-  versions?: any[];
-  [key: string]: any;
-}
 
 interface SectionGridProps {
   title: string;
@@ -32,29 +24,59 @@ export function SectionGrid({
 }: SectionGridProps) {
   const [selectedItem, setSelectedItem] = useState<Entity | null>(null);
   const [showPersonaForm, setShowPersonaForm] = useState(false);
-  const { createPersona } = usePersonas();
 
   const handleItemClick = (item: Entity) => {
+    console.log('handleItemClick - item received:', item);
+    console.log('handleItemClick - title:', title);
+
     if (title.toLowerCase() === 'personas') {
       setShowPersonaForm(true);
-      setSelectedItem(item);
+      const processedItem: Entity = {
+        id: item.id,
+        name: item.name,
+        version: item.version || 'v1.0',
+        description: item.description || '',
+        mainObjective: item.mainObjective || '',
+        systemPrompt: item.systemPrompt || '',
+        userPromptTemplate: item.userPromptTemplate || '',
+        notes: item.notes || '',
+        picture: item.picture,
+        versions: Array.isArray(item.versions) ? item.versions : [{
+          version: 'v1.0',
+          data: {
+            name: item.name,
+            version: 'v1.0',
+            description: item.description || '',
+            mainObjective: item.mainObjective || '',
+            systemPrompt: item.systemPrompt || '',
+            userPromptTemplate: item.userPromptTemplate || '',
+            notes: item.notes || '',
+            picture: item.picture
+          }
+        }]
+      };
+      
+      console.log('handleItemClick - processed item:', processedItem);
+      setSelectedItem(processedItem);
     } else {
+      console.log('handleItemClick - non-persona item:', item);
       setSelectedItem(item);
     }
   };
 
   const handleAddNew = () => {
+    console.log('handleAddNew - title:', title);
+    
     if (title.toLowerCase() === 'personas') {
-      setShowPersonaForm(true);
-      setSelectedItem({
+      const newPersona: Entity = {
         id: '',
         name: 'New Persona',
+        version: 'v1.0',
         description: '',
         mainObjective: '',
         systemPrompt: '',
         userPromptTemplate: '',
         notes: '',
-        version: 'v1.0',
         versions: [{
           version: 'v1.0',
           data: {
@@ -67,8 +89,13 @@ export function SectionGrid({
             notes: ''
           }
         }]
-      });
+      };
+      
+      console.log('handleAddNew - new persona:', newPersona);
+      setShowPersonaForm(true);
+      setSelectedItem(newPersona);
     } else {
+      console.log('handleAddNew - calling onAdd');
       onAdd?.();
     }
   };
@@ -111,7 +138,6 @@ export function SectionGrid({
         selectedItem={selectedItem}
         showPersonaForm={showPersonaForm}
         onClose={handleCloseModals}
-        onEdit={onEdit}
         title={title}
       />
     </>

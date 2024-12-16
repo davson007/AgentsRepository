@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { PersonaForm } from "./persona-form";
@@ -7,23 +7,13 @@ import { PersonaView } from "./persona-view";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import type { PersonaFormData, PersonaVersion } from "@/types/personas";
 import '@/styles/fonts.css';
+import { Entity } from '@/types/entities';
 
 interface PersonaDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (id: string, data: PersonaFormData) => Promise<void>;
-  item?: {
-    id: string;
-    name: string;
-    version: string;
-    description: string;
-    mainObjective: string;
-    systemPrompt: string;
-    userPromptTemplate: string;
-    notes: string;
-    picture: string;
-    versions?: PersonaVersion[];
-  };
+  item: Entity;
 }
 
 export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDetailsModalProps) {
@@ -72,7 +62,16 @@ export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDe
     console.log('Selected version:', selectedVersion);
   }, [item, formData, selectedVersion]);
 
-  const versions = item?.versions || [];
+  const versions = Array.isArray(item?.versions) 
+    ? item.versions.map(v => ({
+        value: v.version,
+        label: v.version
+      })) 
+    : [{ value: 'v1.0', label: 'v1.0' }];
+
+  // Add debug logging
+  console.log('PersonaDetailsModal - item:', item);
+  console.log('PersonaDetailsModal - versions:', versions);
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -93,15 +92,14 @@ export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDe
     
     setIsSaving(true);
     try {
-      const updateData: PersonaFormData & { versions: PersonaVersion[] } = {
+      const currentVersion = item.versions?.find(v => v.version === selectedVersion);
+      const updatedVersions: PersonaVersion[] = currentVersion
+        ? (item.versions?.map(v => v.version === selectedVersion ? { version: v.version, data: formData } : v) || [])
+        : [...(item.versions || []), { version: selectedVersion, data: formData }];
+      
+      const updateData: PersonaFormData = {
         ...formData,
-        versions: item.versions?.length 
-          ? item.versions.map(v => 
-              v.version === selectedVersion 
-                ? { version: selectedVersion, data: formData }
-                : v
-            )
-          : [{ version: selectedVersion, data: formData }]
+        versions: updatedVersions
       };
 
       await onSave(item.id, updateData);
@@ -157,11 +155,17 @@ export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDe
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl bg-[#FBF9FC]/95 backdrop-blur-md border-[#F58C5D]/20">
+      <DialogContent 
+        className="max-w-3xl bg-[#FBF9FC]/95 backdrop-blur-md border-[#F58C5D]/20"
+        aria-describedby="persona-modal-description"
+      >
         <DialogHeader>
           <DialogTitle className="text-xl font-nord-bold text-[#383244]">
             {item?.name || ''}
           </DialogTitle>
+          <DialogDescription id="persona-modal-description">
+            Details and configuration for the {item?.name} persona
+          </DialogDescription>
         </DialogHeader>
         
         <ScrollArea className="max-h-[70vh] pr-4">

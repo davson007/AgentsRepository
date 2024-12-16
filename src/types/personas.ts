@@ -1,3 +1,13 @@
+export interface Version {
+  value: string;
+  label: string;
+}
+
+export interface PersonaVersion {
+  version: string;
+  data: PersonaFormData;
+}
+
 export interface PersonaFormData {
   name: string;
   version: string;
@@ -6,18 +16,8 @@ export interface PersonaFormData {
   systemPrompt: string;
   userPromptTemplate: string;
   notes: string;
-  picture: string;
+  picture?: string;
   versions?: PersonaVersion[];
-}
-
-export interface PersonaVersion {
-  version: string;
-  data: Omit<PersonaFormData, 'versions'>;
-}
-
-export interface Version {
-  value: string;
-  label: string;
 }
 
 export function getLatestVersion(currentVersion: string): string {
