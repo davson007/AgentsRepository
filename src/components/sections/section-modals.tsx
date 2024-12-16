@@ -5,7 +5,7 @@ import type { PersonaFormData } from '@/types/personas';
 import { Entity } from '@/types/entities';
 
 interface SectionModalsProps {
-  selectedItem: Entity | null;
+  selectedItem: AIPersona | null;
   showPersonaForm: boolean;
   onClose: () => void;
   title: string;
@@ -34,7 +34,7 @@ export function SectionModals({
     if (updatePersona.isPending) return;
     
     try {
-      await updatePersona.mutateAsync({ id, updates: updatedData });
+      await updatePersona.mutateAsync({ id, data });
       onClose();
     } catch (error) {
       console.error('Error updating persona:', error);

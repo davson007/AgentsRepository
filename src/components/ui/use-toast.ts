@@ -9,5 +9,6 @@ export type ToastProps = {
 export function toast({ title, description, variant = 'default' }: ToastProps) {
   sonnerToast[variant === 'destructive' ? 'error' : 'success'](title, {
     description,
+    duration: 2000,
   });
 }
