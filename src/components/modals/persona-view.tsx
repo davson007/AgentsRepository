@@ -6,7 +6,10 @@ import '@/styles/fonts.css';
 
 interface PersonaViewProps {
   data: PersonaFormData;
-  versions: Version[];
+  versions: Array<{
+    value: string;
+    label: string;
+  }>;
   currentVersion: string;
   onVersionChange: (version: string) => void;
 }
