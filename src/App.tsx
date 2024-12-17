@@ -25,16 +25,13 @@ function App() {
 
   // Get items based on active section
   let items: any[] = [];
+  let isLoading = false;
+
   if (activeSection === 'personas') {
-    if (personas.isLoading) {
-      return <div>Loading...</div>;
+    isLoading = personas.isLoading;
+    if (!personas.isError) {
+      items = personas.data || [];
     }
-
-    if (personas.isError) {
-      return <div>Error: {personas.error?.message}</div>;
-    }
-
-    items = personas.data || [];
   }
 
   return (
@@ -47,10 +44,17 @@ function App() {
         />
         <main className="flex-1 overflow-auto">
           <SectionContainer>
-            <SectionGrid
-              title={activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}
-              items={items}
-            />
+            {personas.isError ? (
+              <div className="flex items-center justify-center h-full text-red-500">
+                Error: {personas.error?.message}
+              </div>
+            ) : (
+              <SectionGrid
+                title={activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}
+                items={items}
+                isLoading={isLoading}
+              />
+            )}
           </SectionContainer>
         </main>
       </div>

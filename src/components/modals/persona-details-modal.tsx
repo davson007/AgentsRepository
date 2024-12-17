@@ -23,6 +23,7 @@ export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDe
   const [isSaving, setIsSaving] = useState(false);
   
   const getCurrentVersionData = (): Entity => {
+    const versionData = item?.versions?.find(v => v.version === selectedVersion)?.data;
     return {
       id: item?.id || '',
       name: item?.name || '',
@@ -32,7 +33,7 @@ export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDe
       systemPrompt: item?.systemPrompt || '',
       userPromptTemplate: item?.userPromptTemplate || '',
       notes: item?.notes || '',
-      picture: item?.picture || ''
+      picture: selectedVersion === item.version ? item.picture : versionData?.picture || ''
     };
   };
 
@@ -63,7 +64,8 @@ export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDe
     if (versionData) {
       setFormData({
         ...formData,
-        ...versionData
+        ...versionData,
+        picture: version === item.version ? item.picture : versionData.picture || ''
       });
     }
   };

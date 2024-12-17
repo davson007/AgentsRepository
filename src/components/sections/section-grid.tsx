@@ -11,9 +11,10 @@ import '@/styles/fonts.css';
 interface SectionGridProps {
   title: string;
   items: Entity[];
+  isLoading?: boolean;
 }
 
-export function SectionGrid({ title, items }: SectionGridProps) {
+export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
   const [selectedItem, setSelectedItem] = useState<Entity | null>(null);
   const [showPersonaForm, setShowPersonaForm] = useState(false);
 
