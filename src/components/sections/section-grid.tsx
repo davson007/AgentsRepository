@@ -2,7 +2,13 @@ import { useState } from 'react';
 import { ItemCard } from "@/components/cards/item-card";
 import { GridLayout } from "@/components/ui/grid-layout";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Filter } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { SectionModals } from './section-modals';
 import { Entity } from '../../types/entities';
 import { INITIAL_VERSION } from '@/features/personas/types';
@@ -17,12 +23,20 @@ interface SectionGridProps {
   isLoading?: boolean;
 }
 
+type DisplayOption = 'all' | 'favorites';
+
 export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
   const { toggleFavorite, deletePersona } = usePersonas();
   const [selectedItem, setSelectedItem] = useState<Entity | null>(null);
   const [showPersonaForm, setShowPersonaForm] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<Entity | null>(null);
+  const [displayOption, setDisplayOption] = useState<DisplayOption>('all');
+
+  // Sort and filter items
+  const filteredItems = [...items]
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .filter(item => displayOption === 'all' || (displayOption === 'favorites' && item.isFavorite));
 
   const handleItemClick = (item: Entity) => {
     if (title.toLowerCase() === 'personas') {
@@ -123,14 +137,41 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
         <h2 className="text-2xl font-nord-bold tracking-tight" style={{ color: '#F58C5D' }}>
           {title}
         </h2>
-        <Button onClick={handleAddNew} className="bg-[#F58C5D] hover:bg-[#F58C5D]/90">
-          <Plus className="h-4 w-4 mr-2" />
-          Add New
-        </Button>
+        <div className="flex gap-2 items-center">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Filter className="h-4 w-4" />
+                Display options
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent 
+              align="start" 
+              className="min-w-[160px] bg-white/95 backdrop-blur-sm"
+            >
+              <DropdownMenuItem 
+                className="hover:bg-[#F58C5D]/40 focus:bg-[#F58C5D]/40 cursor-pointer"
+                onClick={() => setDisplayOption('all')}
+              >
+                Display all
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                className="hover:bg-[#F58C5D]/40 focus:bg-[#F58C5D]/40 cursor-pointer"
+                onClick={() => setDisplayOption('favorites')}
+              >
+                Display Favorites
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button onClick={handleAddNew} className="bg-[#F58C5D] hover:bg-[#F58C5D]/90">
+            <Plus className="h-4 w-4 mr-2" />
+            Add New
+          </Button>
+        </div>
       </div>
 
       <GridLayout>
-        {items.map((item) => (
+        {filteredItems.map((item) => (
           <ItemCard
             key={item.id}
             title={item.name}
