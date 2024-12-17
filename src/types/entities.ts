@@ -23,4 +23,5 @@ export interface Entity {
   notes: string;
   picture?: string;
   versions?: EntityVersion[];
+  isFavorite?: boolean;
 } 
