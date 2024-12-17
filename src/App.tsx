@@ -4,7 +4,7 @@ import { SectionContainer } from '@/components/sections/section-container';
 import { SectionGrid } from '@/components/sections/section-grid';
 import { HomePage } from '@/components/home-page';
 import { GradientLayout } from '@/components/layouts/gradient-layout';
-import { usePersonas } from '@/hooks/use-personas';
+import { usePersonas } from '@/features/personas';
 import type { SectionId } from '@/constants/navigation';
 
 function App() {
@@ -28,9 +28,9 @@ function App() {
   let isLoading = false;
 
   if (activeSection === 'personas') {
-    isLoading = personas.isLoading;
-    if (!personas.isError) {
-      items = personas.data || [];
+    isLoading = personas?.isLoading ?? false;
+    if (personas?.data && !personas.isError) {
+      items = personas.data;
     }
   }
 
@@ -44,7 +44,7 @@ function App() {
         />
         <main className="flex-1 overflow-auto">
           <SectionContainer>
-            {personas.isError ? (
+            {personas?.isError ? (
               <div className="flex items-center justify-center h-full text-red-500">
                 Error: {personas.error?.message}
               </div>

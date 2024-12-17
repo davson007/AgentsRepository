@@ -9,18 +9,21 @@ import { Entity, EntityVersion } from '@/types/entities';
 import { toast } from "@/components/ui/use-toast";
 import '@/styles/fonts.css';
 import { getLatestVersion } from '@/features/personas/types';
+import { DeleteConfirmationModal } from './delete-confirmation-modal';
 
 interface PersonaDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (id: string | null, data: Entity) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
   item: Entity;
 }
 
-export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDetailsModalProps) {
+export function PersonaDetailsModal({ isOpen, onClose, onSave, onDelete, item }: PersonaDetailsModalProps) {
   const [isEditing, setIsEditing] = useState(!item?.id);
   const [selectedVersion, setSelectedVersion] = useState(item?.version || 'v1.0');
   const [isSaving, setIsSaving] = useState(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   
   const getCurrentVersionData = (): Entity => {
     const versionData = item?.versions?.find(v => v.version === selectedVersion)?.data;
@@ -33,7 +36,7 @@ export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDe
       systemPrompt: item?.systemPrompt || '',
       userPromptTemplate: item?.userPromptTemplate || '',
       notes: item?.notes || '',
-      picture: selectedVersion === item.version ? item.picture : versionData?.picture || ''
+      picture: versionData?.picture || item?.picture || ''
     };
   };
 
@@ -65,7 +68,7 @@ export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDe
       setFormData({
         ...formData,
         ...versionData,
-        picture: version === item.version ? item.picture : versionData.picture || ''
+        picture: item.picture || versionData.picture || ''
       });
     }
   };
@@ -158,8 +161,27 @@ export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDe
   };
 
   const handleDelete = () => {
-    console.log('Deleting:', item?.id);
-    onClose();
+    setShowDeleteConfirmation(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      await onDelete(item.id);
+      setShowDeleteConfirmation(false);
+      onClose();
+      toast({
+        title: "Success",
+        description: "Persona deleted successfully",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error('Failed to delete:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete persona",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCancel = () => {
@@ -167,6 +189,9 @@ export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDe
       onClose();
       return;
     }
+    
+    setFormData(getCurrentVersionData());
+    setSelectedVersion(item.version);
     setIsEditing(false);
   };
 
@@ -251,6 +276,13 @@ export function PersonaDetailsModal({ isOpen, onClose, onSave, item }: PersonaDe
           </div>
         </ScrollArea>
       </DialogContent>
+      <DeleteConfirmationModal
+        isOpen={showDeleteConfirmation}
+        onClose={() => setShowDeleteConfirmation(false)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Persona"
+        itemName={item?.name || ''}
+      />
     </Dialog>
   );  
 }

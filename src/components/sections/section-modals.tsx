@@ -1,6 +1,6 @@
 import { ItemDetailsModal } from "@/components/modals/item-details-modal";
 import { PersonaDetailsModal } from "@/components/modals/persona-details-modal";
-import { usePersonas } from '@/hooks/use-personas';
+import { usePersonas } from '@/features/personas';
 import { Entity } from '../../types/entities';
 
 interface SectionModalsProps {
@@ -16,7 +16,7 @@ export function SectionModals({
   onClose,
   title
 }: SectionModalsProps) {
-  const { updatePersona, createPersona } = usePersonas();
+  const { updatePersona, createPersona, deletePersona } = usePersonas();
 
   const handleSave = async (id: string | null, data: Entity) => {
     try {
@@ -31,6 +31,16 @@ export function SectionModals({
     }
   };
 
+  const handleDelete = async (id: string) => {
+    try {
+      await deletePersona.mutateAsync(id);
+      onClose();
+    } catch (error) {
+      console.error('Error deleting persona:', error);
+      throw error; // Re-throw to trigger error handling in the modal
+    }
+  };
+
   if (!selectedItem) return null;
 
   if (title.toLowerCase() === 'personas' && showPersonaForm) {
@@ -40,6 +50,7 @@ export function SectionModals({
         onClose={onClose}
         item={selectedItem}
         onSave={handleSave}
+        onDelete={handleDelete}
       />
     );
   }

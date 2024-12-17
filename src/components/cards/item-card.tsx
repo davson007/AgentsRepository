@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import '@/styles/fonts.css';
 
@@ -10,6 +10,8 @@ interface ItemCardProps {
   className?: string;
   onEdit?: () => void;
   onDelete?: () => void;
+  onFavorite?: () => void;
+  isFavorite?: boolean;
   onClick?: () => void;
 }
 
@@ -20,6 +22,8 @@ export function ItemCard({
   className,
   onEdit,
   onDelete,
+  onFavorite,
+  isFavorite = false,
   onClick
 }: ItemCardProps) {
   const handleClick = (e: React.MouseEvent) => {
@@ -68,6 +72,24 @@ export function ItemCard({
       </div>
 
       <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        {onFavorite && (
+          <Button 
+            size="icon" 
+            variant="ghost" 
+            className={cn(
+              "h-7 w-7 hover:bg-white/50",
+              isFavorite 
+                ? "text-yellow-500 hover:text-yellow-600" 
+                : "text-[#383244] hover:text-yellow-500"
+            )}
+            onClick={(e) => {
+              e.stopPropagation();
+              onFavorite();
+            }}
+          >
+            <Star className="h-4 w-4" fill={isFavorite ? "currentColor" : "none"} />
+          </Button>
+        )}
         {onEdit && (
           <Button 
             size="icon" 
