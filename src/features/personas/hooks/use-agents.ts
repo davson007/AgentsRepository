@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Entity } from '@/types/entities';
-import { toast } from 'sonner';
 import { 
   getAgents,
   updateAgent as updateAgentApi,
@@ -21,33 +20,21 @@ export function useAgents() {
     mutationFn: ({ id, data }) => updateAgentApi(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agents'] });
-      toast.success('Agent updated successfully');
     },
-    onError: (error) => {
-      toast.error(`Failed to update agent: ${error.message}`);
-    }
   });
 
   const createAgent = useMutation<Entity, Error, Omit<Entity, 'id'>>({
     mutationFn: createAgentApi,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agents'] });
-      toast.success('Agent created successfully');
     },
-    onError: (error) => {
-      toast.error(`Failed to create agent: ${error.message}`);
-    }
   });
 
   const deleteAgent = useMutation<void, Error, string>({
     mutationFn: deleteAgentApi,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agents'] });
-      toast.success('Agent deleted successfully');
     },
-    onError: (error) => {
-      toast.error(`Failed to delete agent: ${error.message}`);
-    }
   });
 
   const toggleFavorite = useMutation({
@@ -56,11 +43,7 @@ export function useAgents() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agents'] });
-      toast.success('Agent favorite status updated');
     },
-    onError: (error) => {
-      toast.error(`Failed to update favorite status: ${error.message}`);
-    }
   });
 
   return {

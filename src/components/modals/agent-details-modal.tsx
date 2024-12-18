@@ -77,10 +77,19 @@ export function AgentDetailsModal({ isOpen, onClose, onSave, onDelete, item }: A
     setIsSaving(true);
     try {
       await onSave(item?.id || null, formData);
+      toast({
+        title: "Success",
+        description: `Agent ${item.id ? 'updated' : 'created'} successfully`,
+        variant: "default",
+      });
       onClose();
     } catch (error) {
       console.error('Failed to save:', error);
-      throw error; // Let section-grid handle the error
+      toast({
+        title: "Error",
+        description: `Failed to ${item.id ? 'update' : 'create'} agent`,
+        variant: "destructive",
+      });
     } finally {
       setIsSaving(false);
     }
@@ -118,21 +127,7 @@ export function AgentDetailsModal({ isOpen, onClose, onSave, onDelete, item }: A
     setIsEditing(true);
   };
 
-  const handleDelete = () => {
-    setShowDeleteConfirmation(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    try {
-      await onDelete(item.id);
-      setShowDeleteConfirmation(false);
-      onClose();
-    } catch (error) {
-      console.error('Failed to delete:', error);
-      throw error;
-    }
-  };
-
+  
   const handleCancel = () => {
     if (!item?.id) {
       onClose();
@@ -142,6 +137,23 @@ export function AgentDetailsModal({ isOpen, onClose, onSave, onDelete, item }: A
     setFormData(getCurrentVersionData());
     setSelectedVersion(item.version);
     setIsEditing(false);
+  };
+
+  const handleDelete = () => {
+    setShowDeleteConfirmation(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      if (item?.id) {
+        await onDelete(item.id);
+        setShowDeleteConfirmation(false);
+        onClose();
+      }
+    } catch (error) {
+      console.error('Failed to delete:', error);
+      throw error; // Let section-grid handle the error
+    }
   };
 
   return (
@@ -227,13 +239,13 @@ export function AgentDetailsModal({ isOpen, onClose, onSave, onDelete, item }: A
           </div>
           </ScrollArea>
         </DialogContent>
-      <DeleteConfirmationModal
-        isOpen={showDeleteConfirmation}
-        onClose={() => setShowDeleteConfirmation(false)}
-        onConfirm={handleConfirmDelete}
-        entityType="Agent"
-        itemName={item?.name || ''}
-      />
+        <DeleteConfirmationModal
+          isOpen={showDeleteConfirmation}
+          onClose={() => setShowDeleteConfirmation(false)}
+          onConfirm={handleConfirmDelete}
+          entityType="Agent"
+          itemName={item?.name || ''}
+        />
     </Dialog>
   );
 } 

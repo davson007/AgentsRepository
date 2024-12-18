@@ -250,11 +250,19 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
           }}
           onDelete={async (id) => {
             try {
-              setItemToDelete(selectedItem);
-              setShowDeleteConfirmation(true);
+              await deleteAgent.mutateAsync(id);
               handleAgentFormClose();
+              toast({
+                title: "Success",
+                description: "Agent deleted successfully",
+              });
             } catch (error) {
               console.error('Error deleting agent:', error);
+              toast({
+                title: "Error",
+                description: "Failed to delete agent",
+                variant: "destructive",
+              });
               throw error;
             }
           }}
