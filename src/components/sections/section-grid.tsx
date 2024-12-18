@@ -62,6 +62,7 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
       systemPrompt: '',
       userPromptTemplate: '',
       notes: '',
+      picture: '',
       versions: [{
         version: INITIAL_VERSION,
         data: {
@@ -71,7 +72,8 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
           mainObjective: '',
           systemPrompt: '',
           userPromptTemplate: '',
-          notes: ''
+          notes: '',
+          picture: ''
         }
       }]
     };

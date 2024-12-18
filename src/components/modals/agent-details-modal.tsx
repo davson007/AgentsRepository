@@ -10,6 +10,7 @@ import { toast } from "@/components/ui/use-toast";
 import { getLatestVersion } from '@/features/personas/types';
 import '@/styles/fonts.css';
 import { DeleteConfirmationModal } from './delete-confirmation-modal';
+import { INITIAL_VERSION } from '@/features/personas/types';
 
 interface AgentDetailsModalProps {
   isOpen: boolean;
@@ -26,7 +27,22 @@ export function AgentDetailsModal({ isOpen, onClose, onSave, onDelete, item }: A
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
 
   const getCurrentVersionData = (): Entity => {
-    const versionData = item?.versions?.find(v => v.version === selectedVersion)?.data;
+    const versions = Array.isArray(item?.versions) ? item.versions : [{
+      version: INITIAL_VERSION,
+      data: {
+        name: item?.name || '',
+        version: INITIAL_VERSION,
+        description: item?.description || '',
+        mainObjective: item?.mainObjective || '',
+        systemPrompt: item?.systemPrompt || '',
+        userPromptTemplate: item?.userPromptTemplate || '',
+        notes: item?.notes || '',
+        picture: item?.picture || ''
+      }
+    }];
+    
+    const versionData = versions.find(v => v.version === selectedVersion)?.data;
+    
     return {
       id: item?.id || '',
       name: item?.name || '',
@@ -36,7 +52,8 @@ export function AgentDetailsModal({ isOpen, onClose, onSave, onDelete, item }: A
       systemPrompt: item?.systemPrompt || '',
       userPromptTemplate: item?.userPromptTemplate || '',
       notes: item?.notes || '',
-      picture: versionData?.picture || item?.picture || ''
+      picture: versionData?.picture || item?.picture || '',
+      versions: versions
     };
   };
 

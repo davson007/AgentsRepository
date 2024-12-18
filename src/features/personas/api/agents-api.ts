@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { Entity, EntityVersion } from '../../../types/entities';
+import { INITIAL_VERSION } from '@/features/personas/types';
 
 // Define the exact type that matches Supabase's response
 type DatabaseAgentResponse = {
@@ -74,6 +75,21 @@ export async function getAgentById(id: string): Promise<Entity> {
 
 export async function createAgent(agent: Omit<Entity, 'id'>): Promise<Entity> {
   try {
+    // Ensure there's at least one version
+    const versions = agent.versions?.length ? agent.versions : [{
+      version: agent.version || INITIAL_VERSION,
+      data: {
+        name: agent.name,
+        version: agent.version || INITIAL_VERSION,
+        description: agent.description,
+        mainObjective: agent.mainObjective,
+        systemPrompt: agent.systemPrompt,
+        userPromptTemplate: agent.userPromptTemplate,
+        notes: agent.notes || '',
+        picture: agent.picture || ''
+      }
+    }];
+
     const { data, error } = await supabase
       .from('ai_agents')
       .insert([{
@@ -84,8 +100,8 @@ export async function createAgent(agent: Omit<Entity, 'id'>): Promise<Entity> {
         user_prompt_template: agent.userPromptTemplate,
         picture: agent.picture || '',
         notes: agent.notes || '',
-        version: agent.version,
-        versions: agent.versions || []
+        version: agent.version || INITIAL_VERSION,
+        versions: versions
       }])
       .select()
       .single();
