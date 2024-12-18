@@ -16,48 +16,46 @@ export function SectionModals({
   onClose,
   title
 }: SectionModalsProps) {
-  console.log('SectionModals - props:', {
-    selectedItem,
-    showPersonaForm,
-    title
-  });
+  const { updatePersona, createPersona, deletePersona } = usePersonas();
 
-  const { updatePersona } = usePersonas();
-
-  const handleSave = async (id: string, updatedData: Entity) => {
-    console.log('SectionModals - handleSave:', {
-      id,
-      updatedData
-    });
-
-    if (updatePersona.isPending) return;
-    
+  const handleSave = async (id: string | null, data: Entity) => {
     try {
-      await updatePersona.mutateAsync({ id, data: updatedData });
+      if (!id) {
+        await createPersona.mutateAsync(data);
+      } else {
+        await updatePersona.mutateAsync({ id, data });
+      }
       onClose();
     } catch (error) {
-      console.error('Error updating persona:', error);
+      console.error('Error saving persona:', error);
     }
   };
 
-  if (!selectedItem) {
-    console.log('SectionModals - no selectedItem, returning null');
-    return null;
-  }
+  const handleDelete = async (id: string) => {
+    try {
+      await deletePersona.mutateAsync(id);
+      onClose();
+    } catch (error) {
+      console.error('Error deleting persona:', error);
+      throw error; // Re-throw to trigger error handling in the modal
+    }
+  };
+
+  if (!selectedItem) return null;
 
   if (title.toLowerCase() === 'personas' && showPersonaForm) {
-    console.log('SectionModals - rendering PersonaDetailsModal');
     return (
       <PersonaDetailsModal
         isOpen={true}
         onClose={onClose}
         item={selectedItem}
         onSave={handleSave}
+        onDelete={handleDelete}
+        entityType="persona"
       />
     );
   }
 
-  console.log('SectionModals - rendering ItemDetailsModal');
   return (
     <ItemDetailsModal
       isOpen={true}

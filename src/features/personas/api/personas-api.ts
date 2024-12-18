@@ -16,6 +16,7 @@ type DatabasePersonaResponse = {
   notes: string | null;
   version: string;
   versions: EntityVersion[] | null;
+  is_favorite: boolean;
 }
 
 function transformDatabaseToAppPersona(dbPersona: DatabasePersonaResponse): Entity {
@@ -29,7 +30,8 @@ function transformDatabaseToAppPersona(dbPersona: DatabasePersonaResponse): Enti
     picture: dbPersona.picture || '',
     notes: dbPersona.notes || '',
     version: dbPersona.version,
-    versions: dbPersona.versions || []
+    versions: dbPersona.versions || [],
+    isFavorite: dbPersona.is_favorite || false
   };
 }
 
@@ -141,6 +143,22 @@ export async function deletePersona(id: string): Promise<void> {
     if (error) throw new Error(`Failed to delete persona: ${error.message}`);
   } catch (error) {
     console.error('Error deleting persona:', error);
+    throw error;
+  }
+}
+
+export async function togglePersonaFavorite(id: string, isFavorite: boolean): Promise<void> {
+  if (!id) throw new Error('Invalid persona ID format');
+  
+  try {
+    const { error } = await supabase
+      .from('ai_personas')
+      .update({ is_favorite: isFavorite })
+      .eq('id', id);
+
+    if (error) throw new Error(`Failed to update persona favorite status: ${error.message}`);
+  } catch (error) {
+    console.error('Error updating persona favorite status:', error);
     throw error;
   }
 }

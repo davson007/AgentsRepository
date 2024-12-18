@@ -2,144 +2,290 @@ import { useState } from 'react';
 import { ItemCard } from "@/components/cards/item-card";
 import { GridLayout } from "@/components/ui/grid-layout";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Filter } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { SectionModals } from './section-modals';
 import { Entity } from '../../types/entities';
+import { INITIAL_VERSION } from '@/features/personas/types';
 import '@/styles/fonts.css';
+import { usePersonas } from '@/features/personas';
+import { toast } from "@/components/ui/use-toast";
+import { DeleteConfirmationModal } from '@/components/modals/delete-confirmation-modal';
+import { useAgents } from '@/features/personas/hooks/use-agents';
+import { AgentDetailsModal } from '@/components/modals/agent-details-modal';
 
 interface SectionGridProps {
   title: string;
   items: Entity[];
-  onAdd?: () => void;
-  onEdit?: (id: string) => void;
-  onDelete?: (id: string) => void;
+  isLoading?: boolean;
 }
 
-export function SectionGrid({
-  title,
-  items,
-  onAdd,
-  onEdit,
-  onDelete,
-}: SectionGridProps) {
+type DisplayOption = 'all' | 'favorites';
+
+export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
+  const { toggleFavorite, deletePersona } = usePersonas();
+  const { createAgent, updateAgent, deleteAgent, toggleFavorite: toggleAgentFavorite } = useAgents();
   const [selectedItem, setSelectedItem] = useState<Entity | null>(null);
   const [showPersonaForm, setShowPersonaForm] = useState(false);
+  const [showAgentForm, setShowAgentForm] = useState(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<Entity | null>(null);
+  const [displayOption, setDisplayOption] = useState<DisplayOption>('all');
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Sort and filter items
+  const filteredItems = [...items]
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .filter(item => displayOption === 'all' || (displayOption === 'favorites' && item.isFavorite));
 
   const handleItemClick = (item: Entity) => {
-    console.log('handleItemClick - item received:', item);
-    console.log('handleItemClick - title:', title);
-
     if (title.toLowerCase() === 'personas') {
       setShowPersonaForm(true);
-      const processedItem: Entity = {
-        id: item.id,
-        name: item.name,
-        version: item.version || 'v1.0',
-        description: item.description || '',
-        mainObjective: item.mainObjective || '',
-        systemPrompt: item.systemPrompt || '',
-        userPromptTemplate: item.userPromptTemplate || '',
-        notes: item.notes || '',
-        picture: item.picture,
-        versions: Array.isArray(item.versions) ? item.versions : [{
-          version: 'v1.0',
-          data: {
-            name: item.name,
-            version: 'v1.0',
-            description: item.description || '',
-            mainObjective: item.mainObjective || '',
-            systemPrompt: item.systemPrompt || '',
-            userPromptTemplate: item.userPromptTemplate || '',
-            notes: item.notes || '',
-            picture: item.picture
-          }
-        }]
-      };
-      
-      console.log('handleItemClick - processed item:', processedItem);
-      setSelectedItem(processedItem);
-    } else {
-      console.log('handleItemClick - non-persona item:', item);
       setSelectedItem(item);
+    } else if (title.toLowerCase() === 'agents') {
+      setShowAgentForm(true);
+      setSelectedItem(item);
+      setIsEditing(false);
     }
   };
 
   const handleAddNew = () => {
-    console.log('handleAddNew - title:', title);
+    const newEntity: Entity = {
+      id: '',
+      name: '',
+      version: INITIAL_VERSION,
+      description: '',
+      mainObjective: '',
+      systemPrompt: '',
+      userPromptTemplate: '',
+      notes: '',
+      picture: '',
+      versions: [{
+        version: INITIAL_VERSION,
+        data: {
+          name: '',
+          version: INITIAL_VERSION,
+          description: '',
+          mainObjective: '',
+          systemPrompt: '',
+          userPromptTemplate: '',
+          notes: '',
+          picture: ''
+        }
+      }]
+    };
     
     if (title.toLowerCase() === 'personas') {
-      const newPersona: Entity = {
-        id: '',
-        name: 'New Persona',
-        version: 'v1.0',
-        description: '',
-        mainObjective: '',
-        systemPrompt: '',
-        userPromptTemplate: '',
-        notes: '',
-        versions: [{
-          version: 'v1.0',
-          data: {
-            name: 'New Persona',
-            version: 'v1.0',
-            description: '',
-            mainObjective: '',
-            systemPrompt: '',
-            userPromptTemplate: '',
-            notes: ''
-          }
-        }]
-      };
-      
-      console.log('handleAddNew - new persona:', newPersona);
       setShowPersonaForm(true);
-      setSelectedItem(newPersona);
-    } else {
-      console.log('handleAddNew - calling onAdd');
-      onAdd?.();
+      setSelectedItem(newEntity);
+    } else if (title.toLowerCase() === 'agents') {
+      setShowAgentForm(true);
+      setSelectedItem(newEntity);
     }
   };
 
   const handleCloseModals = () => {
-    // Reset all modal state
     setShowPersonaForm(false);
     setSelectedItem(null);
   };
 
+  const handleFavorite = async (id: string) => {
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+    
+    try {
+      if (title.toLowerCase() === 'personas') {
+        await toggleFavorite.mutateAsync({ id, isFavorite: !item.isFavorite });
+      } else if (title.toLowerCase() === 'agents') {
+        await toggleAgentFavorite.mutateAsync({ id, isFavorite: !item.isFavorite });
+      }
+      toast({
+        title: "Success",
+        description: `${item.name} ${!item.isFavorite ? 'added to' : 'removed from'} favorites`,
+      });
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update favorite status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDelete = (item: Entity) => {
+    setItemToDelete(item);
+    setShowDeleteConfirmation(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
+    try {
+      if (title.toLowerCase() === 'personas') {
+        await deletePersona.mutateAsync(itemToDelete.id);
+      } else if (title.toLowerCase() === 'agents') {
+        await deleteAgent.mutateAsync(itemToDelete.id);
+      }
+      setShowDeleteConfirmation(false);
+      setItemToDelete(null);
+      toast({
+        title: "Success",
+        description: `${title.slice(0, -1)} deleted successfully`,
+      });
+    } catch (error) {
+      console.error(`Error deleting ${title.toLowerCase()}:`, error);
+      toast({
+        title: "Error",
+        description: `Failed to delete ${title.toLowerCase()}`,
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Add form handling for agents
+  const handleAgentFormClose = () => {
+    setShowAgentForm(false);
+    setSelectedItem(null);
+  };
+
+  const handleAgentFormSave = async (agent: Entity) => {
+    try {
+      if (agent.id) {
+        await updateAgent.mutateAsync({ id: agent.id, data: agent });
+      } else {
+        await createAgent.mutateAsync(agent);
+      }
+      handleAgentFormClose();
+    } catch (error) {
+      console.error('Error saving agent:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save agent",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
-    <>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-nord-bold tracking-tight" style={{ color: '#F58C5D' }}>
-            {title}
-          </h2>
-          <Button onClick={handleAddNew} size="default" className="bg-[#F58C5D] hover:bg-[#F58C5D]/90">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-nord-bold tracking-tight" style={{ color: '#F58C5D' }}>
+          {title}
+        </h2>
+        <div className="flex gap-2 items-center">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Filter className="h-4 w-4" />
+                Display options
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent 
+              align="start" 
+              className="min-w-[160px] bg-white/95 backdrop-blur-sm"
+            >
+              <DropdownMenuItem 
+                className="hover:bg-[#F58C5D]/40 focus:bg-[#F58C5D]/40 cursor-pointer"
+                onClick={() => setDisplayOption('all')}
+              >
+                Display all
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                className="hover:bg-[#F58C5D]/40 focus:bg-[#F58C5D]/40 cursor-pointer"
+                onClick={() => setDisplayOption('favorites')}
+              >
+                Display Favorites
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button onClick={handleAddNew} className="bg-[#F58C5D] hover:bg-[#F58C5D]/90">
             <Plus className="h-4 w-4 mr-2" />
             Add New
           </Button>
         </div>
-
-        <GridLayout>
-          {items.map((item) => (
-            <ItemCard
-              key={item.id}
-              title={item.name}
-              picture={item.picture}
-              description={item.description}
-              onEdit={() => onEdit?.(item.id)}
-              onDelete={() => onDelete?.(item.id)}
-              onClick={() => handleItemClick(item)}
-            />
-          ))}
-        </GridLayout>
       </div>
 
-      <SectionModals
-        selectedItem={selectedItem}
-        showPersonaForm={showPersonaForm}
-        onClose={handleCloseModals}
-        title={title}
+      <GridLayout>
+        {filteredItems.map((item) => (
+          <ItemCard
+            key={item.id}
+            title={item.name}
+            picture={item.picture}
+            description={item.description}
+            onClick={() => handleItemClick(item)}
+            onEdit={() => {
+              setShowAgentForm(true);
+              setSelectedItem(item);
+              setIsEditing(true);
+            }}
+            onDelete={() => handleDelete(item)}
+            onFavorite={() => handleFavorite(item.id)}
+            isFavorite={item.isFavorite}
+          />
+        ))}
+      </GridLayout>
+
+      {showPersonaForm && (
+        <SectionModals
+          selectedItem={selectedItem}
+          showPersonaForm={showPersonaForm}
+          onClose={handleCloseModals}
+          title={title}
+        />
+      )}
+
+      {showAgentForm && (
+        <AgentDetailsModal
+          isOpen={showAgentForm}
+          onClose={handleAgentFormClose}
+          onSave={async (id, data) => {
+            try {
+              if (id) {
+                await updateAgent.mutateAsync({ id, data });
+              } else {
+                await createAgent.mutateAsync(data);
+              }
+              handleAgentFormClose();
+            } catch (error) {
+              console.error('Error saving agent:', error);
+              throw error;
+            }
+          }}
+          onDelete={async (id) => {
+            try {
+              await deleteAgent.mutateAsync(id);
+              handleAgentFormClose();
+              toast({
+                title: "Success",
+                description: "Agent deleted successfully",
+              });
+            } catch (error) {
+              console.error('Error deleting agent:', error);
+              toast({
+                title: "Error",
+                description: "Failed to delete agent",
+                variant: "destructive",
+              });
+              throw error;
+            }
+          }}
+          item={selectedItem!}
+          isEditing={isEditing}
+        />
+      )}
+
+      <DeleteConfirmationModal
+        isOpen={showDeleteConfirmation}
+        onClose={() => setShowDeleteConfirmation(false)}
+        onConfirm={handleConfirmDelete}
+        entityType={title.slice(0, -1)}
+        itemName={itemToDelete?.name || ''}
       />
-    </>
+    </div>
   );
 }
