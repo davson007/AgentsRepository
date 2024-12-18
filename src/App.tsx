@@ -5,11 +5,13 @@ import { SectionGrid } from '@/components/sections/section-grid';
 import { HomePage } from '@/components/home-page';
 import { GradientLayout } from '@/components/layouts/gradient-layout';
 import { usePersonas } from '@/features/personas';
+import { useAgents } from '@/features/personas/hooks/use-agents';
 import type { SectionId } from '@/constants/navigation';
 
 function App() {
   const [activeSection, setActiveSection] = useState<SectionId | null>(null);
   const { personas } = usePersonas();
+  const { agents } = useAgents();
 
   const handleSectionSelect = (sectionId: SectionId) => {
     setActiveSection(sectionId);
@@ -26,11 +28,19 @@ function App() {
   // Get items based on active section
   let items: any[] = [];
   let isLoading = false;
+  let error = null;
 
   if (activeSection === 'personas') {
     isLoading = personas?.isLoading ?? false;
+    error = personas?.error;
     if (personas?.data && !personas.isError) {
       items = personas.data;
+    }
+  } else if (activeSection === 'agents') {
+    isLoading = agents?.isLoading ?? false;
+    error = agents?.error;
+    if (agents?.data && !agents.isError) {
+      items = agents.data;
     }
   }
 
@@ -44,9 +54,9 @@ function App() {
         />
         <main className="flex-1 overflow-auto">
           <SectionContainer>
-            {personas?.isError ? (
+            {error ? (
               <div className="flex items-center justify-center h-full text-red-500">
-                Error: {personas.error?.message}
+                Error: {error.message}
               </div>
             ) : (
               <SectionGrid

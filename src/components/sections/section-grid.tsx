@@ -16,6 +16,8 @@ import '@/styles/fonts.css';
 import { usePersonas } from '@/features/personas';
 import { toast } from "@/components/ui/use-toast";
 import { DeleteConfirmationModal } from '@/components/modals/delete-confirmation-modal';
+import { useAgents } from '@/features/personas/hooks/use-agents';
+import { AgentDetailsModal } from '@/components/modals/agent-details-modal';
 
 interface SectionGridProps {
   title: string;
@@ -27,8 +29,10 @@ type DisplayOption = 'all' | 'favorites';
 
 export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
   const { toggleFavorite, deletePersona } = usePersonas();
+  const { createAgent, updateAgent, deleteAgent, toggleFavorite: toggleAgentFavorite } = useAgents();
   const [selectedItem, setSelectedItem] = useState<Entity | null>(null);
   const [showPersonaForm, setShowPersonaForm] = useState(false);
+  const [showAgentForm, setShowAgentForm] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<Entity | null>(null);
   const [displayOption, setDisplayOption] = useState<DisplayOption>('all');
@@ -42,38 +46,42 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
     if (title.toLowerCase() === 'personas') {
       setShowPersonaForm(true);
       setSelectedItem(item);
-    } else {
+    } else if (title.toLowerCase() === 'agents') {
+      setShowAgentForm(true);
       setSelectedItem(item);
     }
   };
 
   const handleAddNew = () => {
-    if (title.toLowerCase() === 'personas') {
-      const newPersona: Entity = {
-        id: '',
-        name: '',
+    const newEntity: Entity = {
+      id: '',
+      name: '',
+      version: INITIAL_VERSION,
+      description: '',
+      mainObjective: '',
+      systemPrompt: '',
+      userPromptTemplate: '',
+      notes: '',
+      versions: [{
         version: INITIAL_VERSION,
-        description: '',
-        mainObjective: '',
-        systemPrompt: '',
-        userPromptTemplate: '',
-        notes: '',
-        versions: [{
+        data: {
+          name: '',
           version: INITIAL_VERSION,
-          data: {
-            name: '',
-            version: INITIAL_VERSION,
-            description: '',
-            mainObjective: '',
-            systemPrompt: '',
-            userPromptTemplate: '',
-            notes: ''
-          }
-        }]
-      };
-      
+          description: '',
+          mainObjective: '',
+          systemPrompt: '',
+          userPromptTemplate: '',
+          notes: ''
+        }
+      }]
+    };
+    
+    if (title.toLowerCase() === 'personas') {
       setShowPersonaForm(true);
-      setSelectedItem(newPersona);
+      setSelectedItem(newEntity);
+    } else if (title.toLowerCase() === 'agents') {
+      setShowAgentForm(true);
+      setSelectedItem(newEntity);
     }
   };
 
@@ -87,10 +95,11 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
     if (!item) return;
     
     try {
-      await toggleFavorite.mutateAsync({ 
-        id, 
-        isFavorite: !item.isFavorite 
-      });
+      if (title.toLowerCase() === 'personas') {
+        await toggleFavorite.mutateAsync({ id, isFavorite: !item.isFavorite });
+      } else if (title.toLowerCase() === 'agents') {
+        await toggleAgentFavorite.mutateAsync({ id, isFavorite: !item.isFavorite });
+      }
       toast({
         title: "Success",
         description: `${item.name} ${!item.isFavorite ? 'added to' : 'removed from'} favorites`,
@@ -113,19 +122,46 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
   const handleConfirmDelete = async () => {
     if (!itemToDelete) return;
     try {
-      await deletePersona.mutateAsync(itemToDelete.id);
+      if (title.toLowerCase() === 'personas') {
+        await deletePersona.mutateAsync(itemToDelete.id);
+      } else if (title.toLowerCase() === 'agents') {
+        await deleteAgent.mutateAsync(itemToDelete.id);
+      }
       setShowDeleteConfirmation(false);
       setItemToDelete(null);
       toast({
         title: "Success",
-        description: "Persona deleted successfully",
-        variant: "default",
+        description: `${title.slice(0, -1)} deleted successfully`,
       });
     } catch (error) {
-      console.error('Error deleting persona:', error);
+      console.error(`Error deleting ${title.toLowerCase()}:`, error);
       toast({
         title: "Error",
-        description: "Failed to delete persona",
+        description: `Failed to delete ${title.toLowerCase()}`,
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Add form handling for agents
+  const handleAgentFormClose = () => {
+    setShowAgentForm(false);
+    setSelectedItem(null);
+  };
+
+  const handleAgentFormSave = async (agent: Entity) => {
+    try {
+      if (agent.id) {
+        await updateAgent.mutateAsync({ id: agent.id, data: agent });
+      } else {
+        await createAgent.mutateAsync(agent);
+      }
+      handleAgentFormClose();
+    } catch (error) {
+      console.error('Error saving agent:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save agent",
         variant: "destructive",
       });
     }
@@ -186,18 +222,51 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
         ))}
       </GridLayout>
 
-      <SectionModals
-        selectedItem={selectedItem}
-        showPersonaForm={showPersonaForm}
-        onClose={handleCloseModals}
-        title={title}
-      />
+      {showPersonaForm && (
+        <SectionModals
+          selectedItem={selectedItem}
+          showPersonaForm={showPersonaForm}
+          onClose={handleCloseModals}
+          title={title}
+        />
+      )}
+
+      {showAgentForm && (
+        <AgentDetailsModal
+          isOpen={showAgentForm}
+          onClose={handleAgentFormClose}
+          onSave={async (id, data) => {
+            try {
+              if (id) {
+                await updateAgent.mutateAsync({ id, data });
+              } else {
+                await createAgent.mutateAsync(data);
+              }
+              handleAgentFormClose();
+            } catch (error) {
+              console.error('Error saving agent:', error);
+              throw error;
+            }
+          }}
+          onDelete={async (id) => {
+            try {
+              setItemToDelete(selectedItem);
+              setShowDeleteConfirmation(true);
+              handleAgentFormClose();
+            } catch (error) {
+              console.error('Error deleting agent:', error);
+              throw error;
+            }
+          }}
+          item={selectedItem!}
+        />
+      )}
 
       <DeleteConfirmationModal
         isOpen={showDeleteConfirmation}
         onClose={() => setShowDeleteConfirmation(false)}
         onConfirm={handleConfirmDelete}
-        title="Delete Persona"
+        entityType={title.slice(0, -1)}
         itemName={itemToDelete?.name || ''}
       />
     </div>

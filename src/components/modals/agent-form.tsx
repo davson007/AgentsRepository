@@ -6,13 +6,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Entity } from '@/types/entities';
 import '@/styles/fonts.css';
 
-interface PersonaFormProps {
+interface AgentFormProps {
   data: Entity;
   onChange: (field: string, value: string) => void;
   isNewVersion?: boolean;
 }
 
-export function PersonaForm({ data, onChange, isNewVersion }: PersonaFormProps) {
+export function AgentForm({ data, onChange, isNewVersion }: AgentFormProps) {
   const inputClasses = "text-base font-sans bg-white/40";
   const labelClasses = "text-xs font-nord-book text-[#383244]/70";
 
@@ -20,7 +20,7 @@ export function PersonaForm({ data, onChange, isNewVersion }: PersonaFormProps) 
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1">
-          <Label className={labelClasses}>Persona Name</Label>
+          <Label className={labelClasses}>Agent Name</Label>
           <Input
             value={data.name}
             onChange={(e) => onChange('name', e.target.value)}
@@ -94,4 +94,4 @@ export function PersonaForm({ data, onChange, isNewVersion }: PersonaFormProps) 
       </div>
     </div>
   );
-}
+} 

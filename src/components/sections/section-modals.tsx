@@ -51,6 +51,7 @@ export function SectionModals({
         item={selectedItem}
         onSave={handleSave}
         onDelete={handleDelete}
+        entityType="persona"
       />
     );
   }

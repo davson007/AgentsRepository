@@ -6,23 +6,23 @@ interface DeleteConfirmationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  title: string;
   itemName: string;
+  entityType: string;
 }
 
 export function DeleteConfirmationModal({
   isOpen,
   onClose,
   onConfirm,
-  title,
-  itemName
+  itemName,
+  entityType
 }: DeleteConfirmationModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md bg-[#FBF9FC]/95 backdrop-blur-md border-[#F58C5D]/20">
         <DialogHeader>
           <DialogTitle className="text-xl font-nord-bold text-[#383244]">
-            {title}
+            Delete {entityType}
           </DialogTitle>
           <DialogDescription className="text-[#383244]/70 flex flex-col gap-2">
             <span>Are you sure you want to delete <span className="font-semibold text-[#383244]">{itemName}</span>?</span>
