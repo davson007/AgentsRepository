@@ -18,10 +18,11 @@ interface AgentDetailsModalProps {
   onSave: (id: string | null, data: Entity) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   item: Entity;
+  isEditing?: boolean;
 }
 
-export function AgentDetailsModal({ isOpen, onClose, onSave, onDelete, item }: AgentDetailsModalProps) {
-  const [isEditing, setIsEditing] = useState(!item?.id);
+export function AgentDetailsModal({ isOpen, onClose, onSave, onDelete, item, isEditing: initialIsEditing = false }: AgentDetailsModalProps) {
+  const [isEditing, setIsEditing] = useState(initialIsEditing);
   const [selectedVersion, setSelectedVersion] = useState(item?.version || 'v1.0');
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
@@ -62,7 +63,7 @@ export function AgentDetailsModal({ isOpen, onClose, onSave, onDelete, item }: A
   useEffect(() => {
     if (item) {
       setSelectedVersion(item.version || 'v1.0');
-      setIsEditing(!item.id);
+      setIsEditing(initialIsEditing);
       setFormData(getCurrentVersionData());
     }
   }, [item]);

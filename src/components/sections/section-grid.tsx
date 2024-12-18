@@ -36,6 +36,7 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<Entity | null>(null);
   const [displayOption, setDisplayOption] = useState<DisplayOption>('all');
+  const [isEditing, setIsEditing] = useState(false);
 
   // Sort and filter items
   const filteredItems = [...items]
@@ -49,6 +50,7 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
     } else if (title.toLowerCase() === 'agents') {
       setShowAgentForm(true);
       setSelectedItem(item);
+      setIsEditing(false);
     }
   };
 
@@ -216,7 +218,11 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
             picture={item.picture}
             description={item.description}
             onClick={() => handleItemClick(item)}
-            onEdit={() => handleItemClick(item)}
+            onEdit={() => {
+              setShowAgentForm(true);
+              setSelectedItem(item);
+              setIsEditing(true);
+            }}
             onDelete={() => handleDelete(item)}
             onFavorite={() => handleFavorite(item.id)}
             isFavorite={item.isFavorite}
@@ -269,6 +275,7 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
             }
           }}
           item={selectedItem!}
+          isEditing={isEditing}
         />
       )}
 
