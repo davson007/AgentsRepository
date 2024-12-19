@@ -3,7 +3,7 @@ import type { Tool } from '@/types';
 
 export async function getTools() {
   const { data, error } = await supabase
-    .from('tools')
+    .from('ai_tools')
     .select('*');
   
   if (error) throw error;
@@ -12,7 +12,7 @@ export async function getTools() {
 
 export async function getToolById(id: string) {
   const { data, error } = await supabase
-    .from('tools')
+    .from('ai_tools')
     .select('*')
     .eq('id', id)
     .single();
@@ -23,7 +23,7 @@ export async function getToolById(id: string) {
 
 export async function createTool(tool: Omit<Tool, 'id'>) {
   const { data, error } = await supabase
-    .from('tools')
+    .from('ai_tools')
     .insert([tool])
     .select()
     .single();
@@ -34,7 +34,7 @@ export async function createTool(tool: Omit<Tool, 'id'>) {
 
 export async function updateTool(id: string, updates: Partial<Tool>) {
   const { data, error } = await supabase
-    .from('tools')
+    .from('ai_tools')
     .update(updates)
     .eq('id', id)
     .select()
@@ -46,7 +46,7 @@ export async function updateTool(id: string, updates: Partial<Tool>) {
 
 export async function deleteTool(id: string) {
   const { error } = await supabase
-    .from('tools')
+    .from('ai_tools')
     .delete()
     .eq('id', id);
   

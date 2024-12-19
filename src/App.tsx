@@ -6,12 +6,14 @@ import { HomePage } from '@/components/home-page';
 import { GradientLayout } from '@/components/layouts/gradient-layout';
 import { usePersonas } from '@/features/personas';
 import { useAgents } from '@/features/personas/hooks/use-agents';
+import { useTools } from '@/features/personas/hooks/use-tools';
 import type { SectionId } from '@/constants/navigation';
 
 function App() {
   const [activeSection, setActiveSection] = useState<SectionId | null>(null);
   const { personas } = usePersonas();
   const { agents } = useAgents();
+  const { tools } = useTools();
 
   const handleSectionSelect = (sectionId: SectionId) => {
     setActiveSection(sectionId);
@@ -41,6 +43,12 @@ function App() {
     error = agents?.error;
     if (agents?.data && !agents.isError) {
       items = agents.data;
+    }
+  } else if (activeSection === 'tools') {
+    isLoading = tools?.isLoading ?? false;
+    error = tools?.error;
+    if (tools?.data && !tools.isError) {
+      items = tools.data;
     }
   }
 

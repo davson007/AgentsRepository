@@ -15,13 +15,13 @@ export interface EntityVersion {
 export interface Entity {
   id: string;
   name: string;
-  version: string;
   description: string;
   mainObjective: string;
-  systemPrompt: string;
-  userPromptTemplate: string;
-  notes: string;
+  code: string;
+  codeType: string;
   picture?: string;
-  versions?: EntityVersion[];
+  notes?: string;
+  version: string;
+  versions: any[];
   isFavorite?: boolean;
 } 
