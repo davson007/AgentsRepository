@@ -39,20 +39,24 @@ export interface Database {
         Insert: Omit<Tables['ai_agents']['Row'], 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Tables['ai_agents']['Insert']>
       }
-      tools: {
+      ai_tools: {
         Row: {
           id: string
           created_at: string
           updated_at: string
-          icon: string
           name: string
           description: string
-          objective: string
-          parameters: Json
+          main_objective: string
           code: string
+          code_type: string
+          picture: string | null
+          notes: string | null
+          version: string
+          versions: Json[]
+          is_favorite: boolean
         }
-        Insert: Omit<Tables['tools']['Row'], 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<Tables['tools']['Insert']>
+        Insert: Omit<Tables['ai_tools']['Row'], 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Tables['ai_tools']['Insert']>
       }
       api_credentials: {
         Row: {

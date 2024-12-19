@@ -18,6 +18,8 @@ import { toast } from "@/components/ui/use-toast";
 import { DeleteConfirmationModal } from '@/components/modals/delete-confirmation-modal';
 import { useAgents } from '@/features/personas/hooks/use-agents';
 import { AgentDetailsModal } from '@/components/modals/agent-details-modal';
+import { ToolDetailsModal } from '@/components/modals/tool-details-modal';
+import { useTools } from '@/features/personas/hooks/use-tools';
 
 interface SectionGridProps {
   title: string;
@@ -30,6 +32,7 @@ type DisplayOption = 'all' | 'favorites';
 export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
   const { toggleFavorite, deletePersona } = usePersonas();
   const { createAgent, updateAgent, deleteAgent, toggleFavorite: toggleAgentFavorite } = useAgents();
+  const { tools, createTool, updateTool, deleteTool, toggleFavorite: toggleToolFavorite } = useTools();
   const [selectedItem, setSelectedItem] = useState<Entity | null>(null);
   const [showPersonaForm, setShowPersonaForm] = useState(false);
   const [showAgentForm, setShowAgentForm] = useState(false);
@@ -37,6 +40,7 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
   const [itemToDelete, setItemToDelete] = useState<Entity | null>(null);
   const [displayOption, setDisplayOption] = useState<DisplayOption>('all');
   const [isEditing, setIsEditing] = useState(false);
+  const [showToolForm, setShowToolForm] = useState(false);
 
   // Sort and filter items
   const filteredItems = [...items]
@@ -49,6 +53,10 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
       setSelectedItem(item);
     } else if (title.toLowerCase() === 'agents') {
       setShowAgentForm(true);
+      setSelectedItem(item);
+      setIsEditing(false);
+    } else if (title.toLowerCase() === 'tools') {
+      setShowToolForm(true);
       setSelectedItem(item);
       setIsEditing(false);
     }
@@ -86,6 +94,9 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
     } else if (title.toLowerCase() === 'agents') {
       setShowAgentForm(true);
       setSelectedItem(newEntity);
+    } else if (title.toLowerCase() === 'tools') {
+      setShowToolForm(true);
+      setSelectedItem(newEntity);
     }
   };
 
@@ -103,6 +114,8 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
         await toggleFavorite.mutateAsync({ id, isFavorite: !item.isFavorite });
       } else if (title.toLowerCase() === 'agents') {
         await toggleAgentFavorite.mutateAsync({ id, isFavorite: !item.isFavorite });
+      } else if (title.toLowerCase() === 'tools') {
+        await toggleToolFavorite.mutateAsync({ id, isFavorite: !item.isFavorite });
       }
       toast({
         title: "Success",
@@ -130,6 +143,8 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
         await deletePersona.mutateAsync(itemToDelete.id);
       } else if (title.toLowerCase() === 'agents') {
         await deleteAgent.mutateAsync(itemToDelete.id);
+      } else if (title.toLowerCase() === 'tools') {
+        await deleteTool.mutateAsync(itemToDelete.id);
       }
       setShowDeleteConfirmation(false);
       setItemToDelete(null);
@@ -166,6 +181,58 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
       toast({
         title: "Error",
         description: "Failed to save agent",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEdit = (item: Entity) => {
+    setSelectedItem(item);
+    if (title.toLowerCase() === 'personas') {
+      setShowPersonaForm(true);
+    } else if (title.toLowerCase() === 'agents') {
+      setShowAgentForm(true);
+    } else if (title.toLowerCase() === 'tools') {
+      setShowToolForm(true);
+    }
+  };
+
+  const handleToolFormClose = () => {
+    setShowToolForm(false);
+    setSelectedItem(null);
+  };
+
+  const handleToolSave = async (id: string | null, data: Entity) => {
+    try {
+      if (id) {
+        await updateTool.mutateAsync({ id, data });
+      } else {
+        await createTool.mutateAsync(data);
+      }
+      handleToolFormClose();
+    } catch (error) {
+      console.error('Error saving tool:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save tool",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleToolDelete = async (id: string) => {
+    try {
+      await deleteTool.mutateAsync(id);
+      handleToolFormClose();
+      toast({
+        title: "Success",
+        description: "Tool deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting tool:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete tool",
         variant: "destructive",
       });
     }
@@ -219,7 +286,13 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
             description={item.description}
             onClick={() => handleItemClick(item)}
             onEdit={() => {
-              setShowAgentForm(true);
+              if (title.toLowerCase() === 'agents') {
+                setShowAgentForm(true);
+              } else if (title.toLowerCase() === 'tools') {
+                setShowToolForm(true);
+              } else if (title.toLowerCase() === 'personas') {
+                setShowPersonaForm(true);
+              }
               setSelectedItem(item);
               setIsEditing(true);
             }}
@@ -286,6 +359,17 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
         entityType={title.slice(0, -1)}
         itemName={itemToDelete?.name || ''}
       />
+
+      {showToolForm && selectedItem && (
+        <ToolDetailsModal
+          isOpen={showToolForm}
+          onClose={handleToolFormClose}
+          onSave={handleToolSave}
+          onDelete={handleToolDelete}
+          item={selectedItem}
+          isEditing={isEditing}
+        />
+      )}
     </div>
   );
 }
