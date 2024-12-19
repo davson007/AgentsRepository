@@ -7,6 +7,7 @@ import { GradientLayout } from '@/components/layouts/gradient-layout';
 import { usePersonas } from '@/features/personas';
 import { useAgents } from '@/features/personas/hooks/use-agents';
 import { useTools } from '@/features/personas/hooks/use-tools';
+import { useCredentials } from '@/features/personas/hooks/use-credentials';
 import type { SectionId } from '@/constants/navigation';
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
   const { personas } = usePersonas();
   const { agents } = useAgents();
   const { tools } = useTools();
+  const { credentials } = useCredentials();
 
   const handleSectionSelect = (sectionId: SectionId) => {
     setActiveSection(sectionId);
@@ -49,6 +51,19 @@ function App() {
     error = tools?.error;
     if (tools?.data && !tools.isError) {
       items = tools.data;
+    }
+  } else if (activeSection === 'credentials') {
+    isLoading = credentials?.isLoading ?? false;
+    error = credentials?.error;
+    if (credentials?.data && !credentials.isError) {
+      items = credentials.data.map(cred => ({
+        ...cred,
+        isFavorite: cred.is_favorite,
+        mainObjective: '',
+        systemPrompt: '',
+        userPromptTemplate: '',
+        versions: cred.versions || []
+      }));
     }
   }
 
