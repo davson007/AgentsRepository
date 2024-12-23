@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import { NavigationSidebar } from '@/components/navigation-sidebar';
 import { SectionContainer } from '@/components/sections/section-container';
 import { SectionGrid } from '@/components/sections/section-grid';
@@ -8,9 +9,11 @@ import { usePersonas } from '@/features/personas';
 import { useAgents } from '@/features/personas/hooks/use-agents';
 import { useTools } from '@/features/personas/hooks/use-tools';
 import { useCredentials } from '@/features/personas/hooks/use-credentials';
+import { ProtectedRoute } from '@/components/protected-route';
+import { LoginPage } from '@/components/login';
 import type { SectionId } from '@/constants/navigation';
 
-function App() {
+function MainApp() {
   const [activeSection, setActiveSection] = useState<SectionId | null>(null);
   const { personas } = usePersonas();
   const { agents } = useAgents();
@@ -92,6 +95,22 @@ function App() {
         </main>
       </div>
     </GradientLayout>
+  );
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="login" element={<LoginPage />} />
+      <Route
+        path="/*"
+        element={
+          <ProtectedRoute>
+            <MainApp />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
   );
 }
 

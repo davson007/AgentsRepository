@@ -9,22 +9,22 @@ const features = [
   {
     id: 'personas',
     title: 'AI Personas',
-    image: '/src/assets/images/ai_personas.webp',
+    image: new URL('../../assets/images/ai_personas.webp', import.meta.url).href,
   },
   {
     id: 'agents',
     title: 'AI Agents',
-    image: '/src/assets/images/AI_Agents.webp',
+    image: new URL('../../assets/images/AI_Agents.webp', import.meta.url).href,
   },
   {
     id: 'tools',
     title: 'Tools',
-    image: '/src/assets/images/AI_tools.webp',
+    image: new URL('../../assets/images/AI_tools.webp', import.meta.url).href,
   },
   {
     id: 'credentials',
     title: 'API Credentials',
-    image: '/src/assets/images/API_credential.webp',
+    image: new URL('../../assets/images/API_credential.webp', import.meta.url).href,
   },
 ] as const;
 
