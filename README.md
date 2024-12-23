@@ -2,6 +2,9 @@
 
 A modern web application for managing AI personas, agents, tools, and API credentials with a beautiful user interface built using React, TypeScript, and Tailwind CSS.
 
+![image](https://github.com/user-attachments/assets/b34c2f1f-933e-4ced-86b5-18348ae3a073)
+
+
 ## 🌟 Features
 
 - **AI Personas Management**: Create and manage AI personas with customizable system prompts and templates
