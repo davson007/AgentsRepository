@@ -1,4 +1,3 @@
-import { ModalSection } from './sections/modal-section';
 import { ImageUpload } from './image-upload';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,10 +8,9 @@ import '@/styles/fonts.css';
 interface PersonaFormProps {
   data: Entity;
   onChange: (field: string, value: string) => void;
-  isNewVersion?: boolean;
 }
 
-export function PersonaForm({ data, onChange, isNewVersion }: PersonaFormProps) {
+export function PersonaForm({ data, onChange }: PersonaFormProps) {
   const inputClasses = "text-base font-sans bg-white/40";
   const labelClasses = "text-xs font-nord-book text-[#383244]/70";
 

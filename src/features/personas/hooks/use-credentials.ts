@@ -5,37 +5,31 @@ import { supabase } from '@/lib/supabase';
 
 export function useCredentials() {
   const queryClient = useQueryClient();
-  const QUERY_KEY = 'api_credentials';
+  const QUERY_KEY = ['api_credentials'];
 
   const credentials = useQuery({
-    queryKey: [QUERY_KEY],
+    queryKey: QUERY_KEY,
     queryFn: getCredentials
   });
 
-  const createCredentialMutation = useMutation({
-    mutationFn: async (data: Credential) => {
-      return await createCredential(data);
-    },
+  const createCredentialMutation = useMutation<Credential, Error, Omit<Credential, 'id'>>({
+    mutationFn: createCredential,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
     },
   });
 
-  const updateCredentialMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Credential }) => {
-      return await updateCredential(id, data);
-    },
+  const updateCredentialMutation = useMutation<Credential, Error, { id: string; data: Credential }>({
+    mutationFn: ({ id, data }) => updateCredential(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
     },
   });
 
-  const deleteCredentialMutation = useMutation({
-    mutationFn: async (id: string) => {
-      await deleteCredential(id);
-    },
+  const deleteCredentialMutation = useMutation<void, Error, string>({
+    mutationFn: deleteCredential,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
     },
   });
 
@@ -49,7 +43,7 @@ export function useCredentials() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
     },
   });
 

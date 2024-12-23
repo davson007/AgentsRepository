@@ -222,7 +222,6 @@ export function ToolDetailsModal({ isOpen, onClose, onSave, onDelete, item, isEd
               <ToolForm
                 data={formData}
                 onChange={handleChange}
-                isNewVersion={false}
               />
             ) : (
               <ToolView 

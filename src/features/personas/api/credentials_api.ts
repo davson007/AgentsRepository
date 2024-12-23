@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
-import { Credential } from '@/types/credentials';
+import { Credential, CredentialVersion } from '@/types/credentials';
+import { Json } from '@/types/supabase';
 import { INITIAL_VERSION } from '../types';
 
 type DatabaseCredentialResponse = {
@@ -24,20 +25,36 @@ function transformDatabaseToAppCredential(dbCredential: DatabaseCredentialRespon
   return {
     id: dbCredential.id,
     name: dbCredential.name,
-    url: dbCredential.url || '',
-    description: dbCredential.description || '',
-    service: dbCredential.service || '',
-    key: dbCredential.key || '',
-    picture: dbCredential.picture || '',
+    url: dbCredential.url,
+    description: dbCredential.description,
+    service: dbCredential.service,
+    key: dbCredential.key,
     notes: dbCredential.notes || '',
+    picture: dbCredential.picture || '',
     version: dbCredential.version,
     versions: dbCredential.versions || [],
     is_active: dbCredential.is_active,
-    is_favorite: dbCredential.is_favorite,
-    expires_at: dbCredential.expires_at,
-    created_at: dbCredential.created_at,
-    updated_at: dbCredential.updated_at
+    expires_at: dbCredential.expires_at || undefined,
+    is_favorite: dbCredential.is_favorite
   };
+}
+
+function transformVersionsToJson(versions: CredentialVersion[]): Json {
+  return versions.map(v => ({
+    version: v.version,
+    data: {
+      name: v.data.name,
+      url: v.data.url,
+      description: v.data.description,
+      key: v.data.key,
+      service: v.data.service || '',
+      version: v.version,
+      notes: v.data.notes || '',
+      picture: v.data.picture || '',
+      is_active: v.data.is_active || false,
+      expires_at: v.data.expires_at || ''
+    }
+  })) as Json;
 }
 
 export async function getCredentials(): Promise<Credential[]> {
@@ -56,18 +73,23 @@ export async function getCredentials(): Promise<Credential[]> {
 
 export async function createCredential(credential: Omit<Credential, 'id'>): Promise<Credential> {
   try {
-    const versions = credential.versions?.length ? credential.versions : [{
+    const initialVersion: CredentialVersion = {
       version: credential.version || INITIAL_VERSION,
       data: {
         name: credential.name,
-        version: credential.version || INITIAL_VERSION,
         url: credential.url,
         description: credential.description,
         key: credential.key,
+        service: credential.service,
+        version: credential.version || INITIAL_VERSION,
         notes: credential.notes || '',
-        picture: credential.picture || ''
+        picture: credential.picture || '',
+        is_active: credential.is_active || false,
+        expires_at: credential.expires_at || ''
       }
-    }];
+    };
+
+    const versions = credential.versions?.length ? credential.versions : [initialVersion];
 
     const { data, error } = await supabase
       .from('api_credentials')
@@ -76,12 +98,14 @@ export async function createCredential(credential: Omit<Credential, 'id'>): Prom
         url: credential.url,
         description: credential.description,
         key: credential.key,
+        service: credential.service,
         picture: credential.picture || '',
         notes: credential.notes || '',
         version: credential.version || INITIAL_VERSION,
-        versions: versions,
+        versions: transformVersionsToJson(versions),
         is_favorite: credential.is_favorite || false,
-        expires_at: credential.expires_at
+        is_active: credential.is_active || false,
+        expires_at: credential.expires_at || ''
       }])
       .select()
       .single();
@@ -108,7 +132,7 @@ export async function updateCredential(id: string, updates: Credential): Promise
         picture: updates.picture || '',
         notes: updates.notes || '',
         version: updates.version,
-        versions: updates.versions || [],
+        versions: updates.versions ? transformVersionsToJson(updates.versions) : [],
         is_favorite: updates.is_favorite,
         expires_at: updates.expires_at
       })

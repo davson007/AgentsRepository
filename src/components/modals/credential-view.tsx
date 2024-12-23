@@ -39,7 +39,7 @@ export function CredentialView({ data, versions, currentVersion, onVersionChange
             title={
               <div className="flex items-center gap-2">
                 <span>URL</span>
-                <CopyButton value={data.url} />
+                <CopyButton text={data.url || ''} />
               </div>
             }
           >
@@ -50,7 +50,7 @@ export function CredentialView({ data, versions, currentVersion, onVersionChange
             title={
               <div className="flex items-center gap-2">
                 <span>Key</span>
-                <CopyButton value={data.key} />
+                <CopyButton text={data.key || ''} />
               </div>
             } 
             className="mt-4"

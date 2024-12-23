@@ -5,13 +5,13 @@ export interface Credential {
   description: string;
   service: string;
   key: string;
-  notes?: string;
+  notes: string;
   picture?: string;
   version: string;
   versions?: CredentialVersion[];
-  is_active: boolean;
-  is_favorite: boolean;
   expires_at?: string;
+  is_active: boolean;
+  is_favorite?: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -28,5 +28,6 @@ export interface CredentialVersion {
     notes: string;
     picture?: string;
     is_active: boolean;
+    expires_at?: string;
   };
 }

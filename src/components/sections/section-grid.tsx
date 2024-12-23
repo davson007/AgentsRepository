@@ -33,10 +33,10 @@ interface SectionGridProps {
 
 type DisplayOption = 'all' | 'favorites';
 
-export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
+export function SectionGrid({ title, items }: SectionGridProps) {
   const { toggleFavorite, deletePersona } = usePersonas();
   const { createAgent, updateAgent, deleteAgent, toggleFavorite: toggleAgentFavorite } = useAgents();
-  const { tools, createTool, updateTool, deleteTool, toggleFavorite: toggleToolFavorite } = useTools();
+  const { createTool, updateTool, deleteTool, toggleFavorite: toggleToolFavorite } = useTools();
   const [selectedItem, setSelectedItem] = useState<Entity | null>(null);
   const [showPersonaForm, setShowPersonaForm] = useState(false);
   const [showAgentForm, setShowAgentForm] = useState(false);
@@ -52,7 +52,7 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
   // Sort and filter items
   const filteredItems = [...items]
     .sort((a, b) => a.name.localeCompare(b.name))
-    .filter(item => displayOption === 'all' || (displayOption === 'favorites' && item.isFavorite));
+    .filter(item => displayOption === 'all' || (displayOption === 'favorites' && item.isFavorite === true));
 
   console.log('Filtered Items:', filteredItems);
   console.log('Raw Items:', items);
@@ -191,37 +191,6 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
     setSelectedItem(null);
   };
 
-  const handleAgentFormSave = async (agent: Entity) => {
-    try {
-      if (agent.id) {
-        await updateAgent.mutateAsync({ id: agent.id, data: agent });
-      } else {
-        await createAgent.mutateAsync(agent);
-      }
-      handleAgentFormClose();
-    } catch (error) {
-      console.error('Error saving agent:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save agent",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleEdit = (item: Entity) => {
-    setSelectedItem(item);
-    if (title.toLowerCase() === 'personas') {
-      setShowPersonaForm(true);
-    } else if (title.toLowerCase() === 'agents') {
-      setShowAgentForm(true);
-    } else if (title.toLowerCase() === 'tools') {
-      setShowToolForm(true);
-    } else if (title.toLowerCase() === 'credentials') {
-      setShowCredentialForm(true);
-    }
-  };
-
   const handleToolFormClose = () => {
     setShowToolForm(false);
     setSelectedItem(null);
@@ -276,7 +245,7 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
         await createCredential.mutateAsync(data);
       }
       handleCredentialFormClose();
-      queryClient.invalidateQueries(['api_credentials']);
+      queryClient.invalidateQueries({ queryKey: ['api_credentials'] });
     } catch (error) {
       console.error('Error saving credential:', error);
       toast({
@@ -349,7 +318,6 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
           <ItemCard
             key={item.id}
             title={item.name}
-            version={item.version}
             picture={item.picture}
             description={item.description}
             onClick={() => handleItemClick(item)}
@@ -447,7 +415,7 @@ export function SectionGrid({ title, items, isLoading }: SectionGridProps) {
           onClose={handleCredentialFormClose}
           onSave={handleCredentialSave}
           onDelete={handleCredentialDelete}
-          item={selectedItem}
+          item={selectedItem as unknown as Credential}
           isEditing={isEditing}
         />
       )}

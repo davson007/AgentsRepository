@@ -1,16 +1,18 @@
-import { type ReactNode } from 'react';
+import { ReactNode } from 'react';
+import { cn } from '../../../lib/utils';
 
 interface ModalSectionProps {
-  title: string;
+  title: ReactNode;
   children: ReactNode;
   headerContent?: ReactNode;
+  className?: string;
 }
 
-export function ModalSection({ title, children, headerContent }: ModalSectionProps) {
+export function ModalSection({ title, children, headerContent, className }: ModalSectionProps) {
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <h3 className="text-sm font-nord-medium text-[#383244]/70">{title}</h3>
+    <div className={cn("space-y-2", className)}>
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-nord-book text-[#383244]/70">{title}</h3>
         {headerContent}
       </div>
       {children}

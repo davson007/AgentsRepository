@@ -1,4 +1,3 @@
-import { ModalSection } from './sections/modal-section';
 import { ImageUpload } from './image-upload';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

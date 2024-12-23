@@ -76,7 +76,7 @@ export function AgentView({ data, versions, currentVersion, onVersionChange }: A
         title="System Prompt"
         headerContent={
           <CopyButton 
-            text={data.systemPrompt}
+            text={data.systemPrompt || ''}
             className="h-5 w-5 text-[#383244]/70 hover:text-[#F58C5D]"
           />
         }
@@ -90,7 +90,7 @@ export function AgentView({ data, versions, currentVersion, onVersionChange }: A
         title="User Prompt Template"
         headerContent={
           <CopyButton 
-            text={data.userPromptTemplate}
+            text={data.userPromptTemplate || ''}
             className="h-5 w-5 text-[#383244]/70 hover:text-[#F58C5D]"
           />
         }

@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Pencil, Plus, Trash2 } from "lucide-react";
-import { Entity, EntityVersion } from '@/types/entities';
 import { CredentialForm } from "./credential-form";
 import { CredentialView } from "./credential-view";
 import { toast } from "@/components/ui/use-toast";
@@ -11,7 +10,7 @@ import { getLatestVersion } from '@/features/personas/types';
 import '@/styles/fonts.css';
 import { DeleteConfirmationModal } from './delete-confirmation-modal';
 import { INITIAL_VERSION } from '@/features/personas/types';
-import { Credential } from '@/types/credentials';
+import { Credential, CredentialVersion } from '@/types/credentials';
 
 interface CredentialDetailsModalProps {
   isOpen: boolean;
@@ -56,9 +55,9 @@ export function CredentialDetailsModal({ isOpen, onClose, onSave, onDelete, item
       notes: item?.notes || '',
       picture: versionData?.picture || item?.picture || '',
       version: selectedVersion,
-      versions: versions,
-      expires_at: item?.expires_at || null,
-      is_active: item?.is_active || true,
+      versions: versions as CredentialVersion[],
+      expires_at: item?.expires_at || undefined,
+      is_active: item?.is_active ?? true,
       is_favorite: item?.is_favorite || false
     };
   };
@@ -72,9 +71,8 @@ export function CredentialDetailsModal({ isOpen, onClose, onSave, onDelete, item
       setFormData(getCurrentVersionData());
     }
   }, [item]);
-
   const versions = Array.isArray(item?.versions) 
-    ? item.versions.map((v: EntityVersion) => ({
+    ? item.versions.map((v: CredentialVersion) => ({
         value: v.version,
         label: v.version
       })) 
@@ -86,7 +84,7 @@ export function CredentialDetailsModal({ isOpen, onClose, onSave, onDelete, item
 
     const handleVersionChange = (version: string) => {
         setSelectedVersion(version);
-        const versionData = item?.versions?.find((v: EntityVersion) => v.version === version)?.data;
+        const versionData = item?.versions?.find((v: CredentialVersion) => v.version === version)?.data;
         if (versionData) {
             setFormData({
             ...formData,
@@ -133,18 +131,17 @@ export function CredentialDetailsModal({ isOpen, onClose, onSave, onDelete, item
       expires_at: formData.expires_at
     };
 
-    const updatedVersions = [
-      ...(item.versions || []),
-      { 
-        version: newVersion, 
-        data: newVersionData 
-      }
-    ];
 
     setFormData({
       ...formData,
       version: newVersion,
-      versions: updatedVersions
+      versions: [...(item.versions || []), {
+        version: newVersion,
+        data: {
+          ...newVersionData,
+          is_active: true
+        }
+      }]
     });
     
     setSelectedVersion(newVersion);

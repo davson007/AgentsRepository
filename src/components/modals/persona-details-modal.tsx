@@ -216,7 +216,6 @@ export function PersonaDetailsModal({ isOpen, onClose, onSave, onDelete, item }:
               <PersonaForm
                 data={formData}
                 onChange={handleChange}
-                isNewVersion={false}
               />
             ) : (
               <PersonaView 

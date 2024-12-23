@@ -22,7 +22,7 @@ interface AgentDetailsModalProps {
 }
 
 export function AgentDetailsModal({ isOpen, onClose, onSave, onDelete, item, isEditing: initialIsEditing = false }: AgentDetailsModalProps) {
-  const [isEditing, setIsEditing] = useState(initialIsEditing);
+  const [isEditing, setIsEditing] = useState(initialIsEditing || !item?.id);
   const [selectedVersion, setSelectedVersion] = useState(item?.version || 'v1.0');
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
@@ -63,7 +63,6 @@ export function AgentDetailsModal({ isOpen, onClose, onSave, onDelete, item, isE
   useEffect(() => {
     if (item) {
       setSelectedVersion(item.version || 'v1.0');
-      setIsEditing(initialIsEditing);
       setFormData(getCurrentVersionData());
     }
   }, [item]);
