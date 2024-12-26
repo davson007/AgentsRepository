@@ -15,14 +15,6 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
     detectSessionInUrl: true,
     storageKey: 'agents-repository-auth',
     storage: window.localStorage
-  },
-  global: {
-    headers: {
-      'x-application-name': 'agents-repository'
-    }
-  },
-  db: {
-    schema: 'public'
   }
 });
 

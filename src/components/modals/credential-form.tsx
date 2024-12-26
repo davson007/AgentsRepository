@@ -12,7 +12,7 @@ import '@/styles/fonts.css';
 
 interface CredentialFormProps {
   data: Credential;
-  onChange: (field: string, value: string) => void;
+  onChange: (field: string, value: any) => void;
   isNewVersion?: boolean;
 }
 
@@ -29,6 +29,15 @@ export function CredentialForm({ data, onChange, isNewVersion }: CredentialFormP
             value={data.name}
             onChange={(e) => onChange('name', e.target.value)}
             className={inputClasses}
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck="false"
+            name={`name_${Math.random()}`}
+            id={`name_${Math.random()}`}
+            data-form-type="other"
+            data-lpignore="true"
+            aria-autocomplete="none"
+            aria-label="credential name"
           />
         </div>
 
@@ -40,6 +49,9 @@ export function CredentialForm({ data, onChange, isNewVersion }: CredentialFormP
               onChange={(e) => onChange('version', e.target.value)}
               className={inputClasses}
               disabled={!isNewVersion}
+              autoComplete="off"
+              name="credential-version-no-autofill"
+              id="credential-version-no-autofill"
             />
           </div>
         </div>
@@ -51,6 +63,9 @@ export function CredentialForm({ data, onChange, isNewVersion }: CredentialFormP
           value={data.url}
           onChange={(e) => onChange('url', e.target.value)}
           className={inputClasses}
+          autoComplete="off"
+          name="credential-url-no-autofill"
+          id="credential-url-no-autofill"
         />
       </div>
 
@@ -61,6 +76,9 @@ export function CredentialForm({ data, onChange, isNewVersion }: CredentialFormP
             value={data.description}
             onChange={(e) => onChange('description', e.target.value)}
             className={`${inputClasses} min-h-[80px]`}
+            autoComplete="off"
+            name="credential-description-no-autofill"
+            id="credential-description-no-autofill"
           />
         </div>
 
@@ -71,42 +89,59 @@ export function CredentialForm({ data, onChange, isNewVersion }: CredentialFormP
       </div>
 
       <div className="space-y-1">
+        <Label className={labelClasses}>Service</Label>
+        <Input
+          value={data.service}
+          onChange={(e) => onChange('service', e.target.value)}
+          className={inputClasses}
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck="false"
+          name={`service_${Math.random()}`}
+          id={`service_${Math.random()}`}
+          data-form-type="other"
+          data-lpignore="true"
+        />
+      </div>
+
+      <div className="space-y-1">
+        <Label className={labelClasses}>Key</Label>
+        <Input
+          type="text"
+          value={data.key}
+          onChange={(e) => onChange('key', e.target.value)}
+          className={inputClasses}
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck="false"
+          name={`key_${Math.random()}`}
+          id={`key_${Math.random()}`}
+          data-form-type="other"
+          data-lpignore="true"
+        />
+      </div>
+
+      <div className="space-y-1">
         <Label className={labelClasses}>Expires At</Label>
         <Popover>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className={`w-full justify-start text-left font-normal ${inputClasses}`}
+              className={`w-full justify-start text-left font-normal ${!data.expires_at && "text-muted-foreground"}`}
             >
-              {data.expires_at ? (
-                format(new Date(data.expires_at), "PPP")
-              ) : (
-                <span className="text-muted-foreground">Pick a date</span>
-              )}
-              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {data.expires_at ? format(new Date(data.expires_at), "PPP") : <span>Pick a date</span>}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="single"
               selected={data.expires_at ? new Date(data.expires_at) : undefined}
-              onSelect={(date) => 
-                onChange('expires_at', date ? date.toISOString() : '')
-              }
+              onSelect={(date) => onChange('expires_at', date?.toISOString())}
               initialFocus
             />
           </PopoverContent>
         </Popover>
-      </div>
-
-      <div className="space-y-1">
-        <Label className={labelClasses}>Key</Label>
-        <Input
-          type="password"
-          value={data.key}
-          onChange={(e) => onChange('key', e.target.value)}
-          className={inputClasses}
-        />
       </div>
 
       <div className="space-y-1">
@@ -116,6 +151,9 @@ export function CredentialForm({ data, onChange, isNewVersion }: CredentialFormP
           onChange={(e) => onChange('notes', e.target.value)}
           placeholder="Add any additional notes here..."
           className={`${inputClasses} min-h-[80px]`}
+          autoComplete="off"
+          name="credential-notes-no-autofill"
+          id="credential-notes-no-autofill"
         />
       </div>
     </div>

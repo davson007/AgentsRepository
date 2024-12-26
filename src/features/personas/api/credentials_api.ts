@@ -1,7 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { Credential, CredentialVersion } from '@/types/credentials';
 import { Json } from '@/types/supabase';
-import { INITIAL_VERSION } from '../types';
 
 type DatabaseCredentialResponse = {
   id: string;
@@ -73,24 +72,6 @@ export async function getCredentials(): Promise<Credential[]> {
 
 export async function createCredential(credential: Omit<Credential, 'id'>): Promise<Credential> {
   try {
-    const initialVersion: CredentialVersion = {
-      version: credential.version || INITIAL_VERSION,
-      data: {
-        name: credential.name,
-        url: credential.url,
-        description: credential.description,
-        key: credential.key,
-        service: credential.service,
-        version: credential.version || INITIAL_VERSION,
-        notes: credential.notes || '',
-        picture: credential.picture || '',
-        is_active: credential.is_active || false,
-        expires_at: credential.expires_at || ''
-      }
-    };
-
-    const versions = credential.versions?.length ? credential.versions : [initialVersion];
-
     const { data, error } = await supabase
       .from('api_credentials')
       .insert([{
@@ -98,14 +79,12 @@ export async function createCredential(credential: Omit<Credential, 'id'>): Prom
         url: credential.url,
         description: credential.description,
         key: credential.key,
-        service: credential.service,
         picture: credential.picture || '',
         notes: credential.notes || '',
-        version: credential.version || INITIAL_VERSION,
-        versions: transformVersionsToJson(versions),
+        version: credential.version,
+        versions: credential.versions ? transformVersionsToJson(credential.versions) : [],
         is_favorite: credential.is_favorite || false,
-        is_active: credential.is_active || false,
-        expires_at: credential.expires_at || ''
+        expires_at: credential.expires_at || null
       }])
       .select()
       .single();

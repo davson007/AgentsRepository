@@ -13,7 +13,9 @@ export function useCredentials() {
   });
 
   const createCredentialMutation = useMutation<Credential, Error, Omit<Credential, 'id'>>({
-    mutationFn: createCredential,
+    mutationFn: async (newCredential) => {
+      return await createCredential(newCredential);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
     },

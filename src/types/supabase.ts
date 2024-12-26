@@ -1,4 +1,3 @@
-import { SupabaseClient } from '@supabase/supabase-js';
 
 export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
 
@@ -239,11 +238,3 @@ export type DatabaseAgentResponse = Tables<'ai_agents'>;
 export type DatabasePersonaResponse = Tables<'ai_personas'>;
 export type DatabaseToolResponse = Tables<'ai_tools'>;
 export type DatabaseCredentialResponse = Tables<'api_credentials'>;
-
-// Create a Supabase client instance
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-const supabase: SupabaseClient<Database> = createClient<Database>(supabaseUrl, supabaseAnonKey);
-
-export default supabase;

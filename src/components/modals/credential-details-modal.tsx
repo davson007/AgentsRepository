@@ -17,7 +17,7 @@ interface CredentialDetailsModalProps {
   onClose: () => void;
   onSave: (id: string | null, data: Credential) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
-  item: Credential;
+  item?: Credential;
   isEditing?: boolean;
 }
 
@@ -28,6 +28,10 @@ export function CredentialDetailsModal({ isOpen, onClose, onSave, onDelete, item
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
 
   const getCurrentVersionData = (): Credential => {
+    if (!item) {
+      return formData;
+    }
+
     const versions = Array.isArray(item?.versions) ? item.versions : [{
       version: INITIAL_VERSION,
       data: {
@@ -39,7 +43,8 @@ export function CredentialDetailsModal({ isOpen, onClose, onSave, onDelete, item
         key: item?.key || '',
         notes: item?.notes || '',
         picture: item?.picture || '',
-        expires_at: item?.expires_at || null
+        expires_at: item?.expires_at || undefined,
+        is_active: item?.is_active ?? true
       }
     }];
     
@@ -62,7 +67,44 @@ export function CredentialDetailsModal({ isOpen, onClose, onSave, onDelete, item
     };
   };
 
-  const [formData, setFormData] = useState<Credential>(getCurrentVersionData());
+  const [formData, setFormData] = useState<Credential>(() => {
+    if (item) {
+      return getCurrentVersionData();
+    }
+    
+    // Initialize new credential with empty values
+    const initialVersion: CredentialVersion = {
+      version: INITIAL_VERSION,
+      data: {
+        name: '',
+        url: '',
+        description: '',
+        service: '',
+        key: '',
+        notes: '',
+        picture: '',
+        version: INITIAL_VERSION,
+        is_active: true,
+        expires_at: undefined
+      }
+    };
+
+    return {
+      id: '',
+      name: '',
+      url: '',
+      description: '',
+      service: '',
+      key: '',
+      notes: '',
+      picture: '',
+      version: INITIAL_VERSION,
+      versions: [initialVersion] as CredentialVersion[],
+      is_active: true,
+      is_favorite: false,
+      expires_at: undefined
+    };
+  });
 
   useEffect(() => {
     if (item) {
@@ -97,10 +139,20 @@ export function CredentialDetailsModal({ isOpen, onClose, onSave, onDelete, item
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await onSave(item?.id || null, formData);
+      const dataToSave = {
+        ...formData,
+        versions: formData.versions?.map(v => ({
+          version: v.version,
+          data: {
+            ...v.data,
+            is_active: true
+          }
+        }))
+      };
+      await onSave(item?.id || null, dataToSave);
       toast({
         title: "Success",
-        description: `Credential ${item.id ? 'updated' : 'created'} successfully`,
+        description: `Credential ${item?.id ? 'updated' : 'created'} successfully`,
         variant: "default",
       });
       onClose();
@@ -108,7 +160,7 @@ export function CredentialDetailsModal({ isOpen, onClose, onSave, onDelete, item
       console.error('Failed to save:', error);
       toast({
         title: "Error",
-        description: `Failed to ${item.id ? 'update' : 'create'} credential`,
+        description: `Failed to ${item?.id ? 'update' : 'create'} credential`,
         variant: "destructive",
       });
     } finally {
@@ -135,7 +187,7 @@ export function CredentialDetailsModal({ isOpen, onClose, onSave, onDelete, item
     setFormData({
       ...formData,
       version: newVersion,
-      versions: [...(item.versions || []), {
+      versions: [...(item?.versions || []), {
         version: newVersion,
         data: {
           ...newVersionData,
