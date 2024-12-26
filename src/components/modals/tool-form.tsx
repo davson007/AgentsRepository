@@ -1,4 +1,3 @@
-import { ModalSection } from './sections/modal-section';
 import { ImageUpload } from './image-upload';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,15 +12,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-type CodeType = 'python' | 'java' | 'other';
-
 interface ToolFormProps {
-  data: Entity & { codeType?: CodeType };
+  data: Entity;
   onChange: (field: string, value: string) => void;
-  isNewVersion?: boolean;
 }
 
-export function ToolForm({ data, onChange, isNewVersion }: ToolFormProps) {
+export function ToolForm({ data, onChange }: ToolFormProps) {
   const inputClasses = "text-base font-sans bg-white/40";
   const labelClasses = "text-xs font-nord-book text-[#383244]/70";
 

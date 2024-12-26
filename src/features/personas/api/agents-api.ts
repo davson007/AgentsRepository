@@ -1,23 +1,27 @@
 import { supabase } from '@/lib/supabase';
 import { Entity, EntityVersion } from '../../../types/entities';
 import { INITIAL_VERSION } from '@/features/personas/types';
+import { Json } from '@/types/supabase';
 
 // Define the exact type that matches Supabase's response
-type DatabaseAgentResponse = {
+interface DatabaseAgentResponse {
   id: string;
   created_at: string;
   updated_at: string;
-  icon: string | null;
+  icon: string;
   name: string;
   description: string;
+  persona_id: string | null;
+  configuration: any;
+  status: string;
+  is_favorite: boolean;
   main_objective: string;
   system_prompt: string;
   user_prompt_template: string;
-  picture: string | null;
-  notes: string | null;
-  version: string;
-  versions: EntityVersion[] | null;
-  is_favorite: boolean;
+  notes?: string | null;
+  versions: any;
+  picture?: string;
+  version?: string;
 }
 
 function transformDatabaseToAppAgent(dbAgent: DatabaseAgentResponse): Entity {
@@ -30,9 +34,9 @@ function transformDatabaseToAppAgent(dbAgent: DatabaseAgentResponse): Entity {
     userPromptTemplate: dbAgent.user_prompt_template,
     picture: dbAgent.picture || '',
     notes: dbAgent.notes || '',
-    version: dbAgent.version,
+    version: dbAgent.version || 'v1.0',
     versions: dbAgent.versions || [],
-    isFavorite: dbAgent.is_favorite || false
+    isFavorite: dbAgent.is_favorite
   };
 }
 
@@ -46,7 +50,7 @@ export async function getAgents(): Promise<Entity[]> {
     if (error) throw new Error(`Failed to fetch agents: ${error.message}`);
     if (!data) return [];
 
-    return (data as DatabaseAgentResponse[]).map(transformDatabaseToAppAgent);
+    return (data as unknown as DatabaseAgentResponse[]).map(transformDatabaseToAppAgent);
   } catch (error) {
     console.error('Error fetching agents:', error);
     throw error;
@@ -73,10 +77,24 @@ export async function getAgentById(id: string): Promise<Entity> {
   }
 }
 
+function transformVersionsForDatabase(versions: EntityVersion[]): Record<string, any>[] {
+  return versions.map(v => ({
+    version: v.version,
+    data: {
+      name: v.data.name,
+      description: v.data.description,
+      mainObjective: v.data.mainObjective,
+      systemPrompt: v.data.systemPrompt,
+      userPromptTemplate: v.data.userPromptTemplate,
+      notes: v.data.notes,
+      picture: v.data.picture
+    }
+  }));
+}
+
 export async function createAgent(agent: Omit<Entity, 'id'>): Promise<Entity> {
   try {
-    // Ensure there's at least one version
-    const versions = agent.versions?.length ? agent.versions : [{
+    const versions = agent.versions?.length ? transformVersionsForDatabase(agent.versions) : [{
       version: agent.version || INITIAL_VERSION,
       data: {
         name: agent.name,
@@ -92,7 +110,7 @@ export async function createAgent(agent: Omit<Entity, 'id'>): Promise<Entity> {
 
     const { data, error } = await supabase
       .from('ai_agents')
-      .insert([{
+      .insert({
         name: agent.name,
         description: agent.description,
         main_objective: agent.mainObjective,
@@ -101,8 +119,8 @@ export async function createAgent(agent: Omit<Entity, 'id'>): Promise<Entity> {
         picture: agent.picture || '',
         notes: agent.notes || '',
         version: agent.version || INITIAL_VERSION,
-        versions: versions
-      }])
+        versions
+      })
       .select()
       .single();
 
@@ -114,6 +132,21 @@ export async function createAgent(agent: Omit<Entity, 'id'>): Promise<Entity> {
     console.error('Error creating agent:', error);
     throw error;
   }
+}
+
+function transformVersionsToJson(versions: EntityVersion[]): Json {
+  return versions.map(v => ({
+    version: v.version,
+    data: {
+      name: v.data.name,
+      description: v.data.description,
+      mainObjective: v.data.mainObjective,
+      systemPrompt: v.data.systemPrompt,
+      userPromptTemplate: v.data.userPromptTemplate,
+      notes: v.data.notes || '',
+      picture: v.data.picture || ''
+    }
+  })) as Json;
 }
 
 export async function updateAgent(id: string, updates: Entity): Promise<Entity> {
@@ -131,7 +164,7 @@ export async function updateAgent(id: string, updates: Entity): Promise<Entity> 
         picture: updates.picture || '',
         notes: updates.notes || '',
         version: updates.version,
-        versions: updates.versions || []
+        versions: updates.versions ? transformVersionsToJson(updates.versions) : []
       })
       .eq('id', id)
       .select()

@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { Entity, EntityVersion } from '../../../types/entities';
+import { Json } from '@/types/supabase';
+import { INITIAL_VERSION } from '../types';
 
 // Define the exact type that matches Supabase's response
 type DatabasePersonaResponse = {
@@ -33,6 +35,22 @@ function transformDatabaseToAppPersona(dbPersona: DatabasePersonaResponse): Enti
     versions: dbPersona.versions || [],
     isFavorite: dbPersona.is_favorite || false
   };
+}
+
+function transformVersionsToJson(versions: EntityVersion[]): Json {
+  return versions.map(v => ({
+    version: v.version,
+    data: {
+      name: v.data.name,
+      description: v.data.description,
+      mainObjective: v.data.mainObjective,
+      systemPrompt: v.data.systemPrompt,
+      userPromptTemplate: v.data.userPromptTemplate,
+      version: v.version,
+      notes: v.data.notes || '',
+      picture: v.data.picture || ''
+    }
+  })) as Json;
 }
 
 export async function getPersonas(): Promise<Entity[]> {
@@ -74,6 +92,20 @@ export async function getPersonaById(id: string): Promise<Entity> {
 
 export async function createPersona(persona: Omit<Entity, 'id'>): Promise<Entity> {
   try {
+    const versions = persona.versions?.length ? persona.versions : [{
+      version: persona.version || INITIAL_VERSION,
+      data: {
+        name: persona.name,
+        description: persona.description,
+        mainObjective: persona.mainObjective,
+        systemPrompt: persona.systemPrompt,
+        userPromptTemplate: persona.userPromptTemplate,
+        version: persona.version || INITIAL_VERSION,
+        notes: persona.notes || '',
+        picture: persona.picture || ''
+      }
+    }];
+
     const { data, error } = await supabase
       .from('ai_personas')
       .insert([{
@@ -84,8 +116,8 @@ export async function createPersona(persona: Omit<Entity, 'id'>): Promise<Entity
         user_prompt_template: persona.userPromptTemplate,
         picture: persona.picture || '',
         notes: persona.notes || '',
-        version: persona.version,
-        versions: persona.versions || []
+        version: persona.version || INITIAL_VERSION,
+        versions: transformVersionsToJson(versions)
       }])
       .select()
       .single();
@@ -115,7 +147,7 @@ export async function updatePersona(id: string, updates: Entity): Promise<Entity
         picture: updates.picture || '',
         notes: updates.notes || '',
         version: updates.version,
-        versions: updates.versions || []
+        versions: updates.versions ? transformVersionsToJson(updates.versions) : []
       })
       .eq('id', id)
       .select()

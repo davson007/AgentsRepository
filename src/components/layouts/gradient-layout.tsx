@@ -1,13 +1,12 @@
-import { type ReactNode } from 'react';
 import '@/styles/home-gradient.css';
 
 interface GradientLayoutProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 export function GradientLayout({ children }: GradientLayoutProps) {
   return (
-    <div className="min-h-screen home-gradient-bg relative overflow-hidden">
+    <div className="relative min-h-screen home-gradient-bg">
       <div className="relative z-10">
         {children}
       </div>

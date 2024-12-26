@@ -1,4 +1,3 @@
-import { ModalSection } from './sections/modal-section';
 import { ImageUpload } from './image-upload';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +11,7 @@ interface AgentFormProps {
   isNewVersion?: boolean;
 }
 
-export function AgentForm({ data, onChange, isNewVersion }: AgentFormProps) {
+export function AgentForm({ data, onChange }: AgentFormProps) {
   const inputClasses = "text-base font-sans bg-white/40";
   const labelClasses = "text-xs font-nord-book text-[#383244]/70";
 

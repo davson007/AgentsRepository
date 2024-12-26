@@ -1,11 +1,12 @@
 import { ModalSection } from './sections/modal-section';
 import { VersionSelector } from './version-selector';
 import { CopyButton } from "@/components/ui/copy-button";
-import { Entity } from '@/types/entities';
+import { Credential } from '@/types/credentials';
 import '@/styles/fonts.css';
+import { format } from 'date-fns';
 
-interface AgentViewProps {
-  data: Entity;
+interface CredentialViewProps {
+  data: Credential;
   versions: Array<{
     value: string;
     label: string;
@@ -14,12 +15,12 @@ interface AgentViewProps {
   onVersionChange: (version: string) => void;
 }
 
-export function AgentView({ data, versions, currentVersion, onVersionChange }: AgentViewProps) {
+export function CredentialView({ data, versions, currentVersion, onVersionChange }: CredentialViewProps) {
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
-        <ModalSection title="Agent Name">
+        <ModalSection title="Credential Name">
           <p className="text-base font-fougie text-[#383244]">{data.name}</p>
         </ModalSection>
 
@@ -33,18 +34,37 @@ export function AgentView({ data, versions, currentVersion, onVersionChange }: A
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <ModalSection title="Description">
-          <p className="text-base font-fougie text-[#383244] whitespace-pre-wrap">
-            {data.description}
-          </p>
-        </ModalSection>
+        <div>
+          <ModalSection 
+            title={
+              <div className="flex items-center gap-2">
+                <span>URL</span>
+                <CopyButton text={data.url || ''} />
+              </div>
+            }
+          >
+            <p className="text-base font-fougie text-[#383244]">{data.url}</p>
+          </ModalSection>
+
+          <ModalSection 
+            title={
+              <div className="flex items-center gap-2">
+                <span>Key</span>
+                <CopyButton text={data.key || ''} />
+              </div>
+            } 
+            className="mt-4"
+          >
+            <p className="text-base font-fougie text-[#383244]">••••••••</p>
+          </ModalSection>
+        </div>
 
         <ModalSection title="Picture">
           {data.picture ? (
             <div className="w-32 h-32 rounded-lg overflow-hidden">
-              <img 
-                src={data.picture} 
-                alt={data.name} 
+              <img
+                src={data.picture}
+                alt={data.name}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -58,45 +78,15 @@ export function AgentView({ data, versions, currentVersion, onVersionChange }: A
         </ModalSection>
       </div>
 
-      <ModalSection 
-        title="Main Objective"
-        headerContent={
-          <CopyButton 
-            text={data.mainObjective}
-            className="h-5 w-5 text-[#383244]/70 hover:text-[#F58C5D]"
-          />
-        }
-      >
+      <ModalSection title="Description">
         <p className="text-base font-fougie text-[#383244] whitespace-pre-wrap">
-          {data.mainObjective}
+          {data.description}
         </p>
       </ModalSection>
 
-      <ModalSection 
-        title="System Prompt"
-        headerContent={
-          <CopyButton 
-            text={data.systemPrompt || ''}
-            className="h-5 w-5 text-[#383244]/70 hover:text-[#F58C5D]"
-          />
-        }
-      >
-        <p className="text-base font-fougie text-[#383244] whitespace-pre-wrap">
-          {data.systemPrompt}
-        </p>
-      </ModalSection>
-
-      <ModalSection 
-        title="User Prompt Template"
-        headerContent={
-          <CopyButton 
-            text={data.userPromptTemplate || ''}
-            className="h-5 w-5 text-[#383244]/70 hover:text-[#F58C5D]"
-          />
-        }
-      >
-        <p className="text-base font-fougie text-[#383244] whitespace-pre-wrap">
-          {data.userPromptTemplate}
+      <ModalSection title="Expires At">
+        <p className="text-base font-fougie text-[#383244]">
+          {data.expires_at ? format(new Date(data.expires_at), "PPP") : 'No expiration date'}
         </p>
       </ModalSection>
 

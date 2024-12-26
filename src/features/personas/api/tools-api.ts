@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
-import { Entity } from '@/types/entities';
+import { Entity, EntityVersion, CodeType } from '@/types/entities';
 import { INITIAL_VERSION } from '../types';
+import { Json } from '@/types/supabase';
 
 type DatabaseToolResponse = {
   id: string;
@@ -25,13 +26,28 @@ function transformDatabaseToAppTool(dbTool: DatabaseToolResponse): Entity {
     description: dbTool.description || '',
     mainObjective: dbTool.main_objective || '',
     code: dbTool.code || '',
-    codeType: dbTool.code_type || 'python',
+    codeType: (dbTool.code_type || 'python') as CodeType,
     picture: dbTool.picture || '',
     notes: dbTool.notes || '',
     version: dbTool.version,
     versions: dbTool.versions || [],
     isFavorite: dbTool.is_favorite || false
   };
+}
+
+function transformVersionsToJson(versions: EntityVersion[]): Json {
+  return versions.map(v => ({
+    version: v.version,
+    data: {
+      name: v.data.name,
+      description: v.data.description,
+      mainObjective: v.data.mainObjective,
+      code: v.data.code,
+      codeType: v.data.codeType,
+      notes: v.data.notes || '',
+      picture: v.data.picture || ''
+    }
+  })) as Json;
 }
 
 export async function getTools(): Promise<Entity[]> {
@@ -77,7 +93,7 @@ export async function createTool(tool: Omit<Entity, 'id'>): Promise<Entity> {
         picture: tool.picture || '',
         notes: tool.notes || '',
         version: tool.version || INITIAL_VERSION,
-        versions: versions
+        versions: transformVersionsToJson(versions)
       }])
       .select()
       .single();
@@ -105,7 +121,7 @@ export async function updateTool(id: string, updates: Entity): Promise<Entity> {
         picture: updates.picture || '',
         notes: updates.notes || '',
         version: updates.version,
-        versions: updates.versions || []
+        versions: updates.versions ? transformVersionsToJson(updates.versions) : []
       })
       .eq('id', id)
       .select()

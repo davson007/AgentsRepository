@@ -16,16 +16,7 @@ export function NavigationSidebar({
   onBackToHome 
 }: NavigationSidebarProps) {
   return (
-    <div className="w-64 border-r border-white/10 h-screen p-4 space-y-4 bg-black/20">
-      <Button
-        variant="ghost"
-        className="w-full justify-start gap-2 text-[#F5DEAE] font-nord-regular hover:text-white hover:bg-white/10"
-        onClick={onBackToHome}
-      >
-        <Home className="h-4 w-4" />
-        <span>Back to Home</span>
-      </Button>
-      
+    <div className="w-64 border-r border-white/10 h-screen p-4 flex flex-col bg-black/20">
       <div className="space-y-2">
         {navigationSections.map(({ id, icon: Icon, label }) => (
           <Button
@@ -45,6 +36,15 @@ export function NavigationSidebar({
           </Button>
         ))}
       </div>
+
+      <Button
+        variant="ghost"
+        className="w-full justify-start gap-2 text-[#F5DEAE] font-nord-regular hover:text-white hover:bg-white/10 mt-auto"
+        onClick={onBackToHome}
+      >
+        <Home className="h-4 w-4" />
+        <span>Back to Home</span>
+      </Button>
     </div>
   );
 }

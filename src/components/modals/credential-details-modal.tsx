@@ -3,42 +3,48 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Pencil, Plus, Trash2 } from "lucide-react";
-import { Entity, EntityVersion } from '@/types/entities';
-import { AgentForm } from "./agent-form";
-import { AgentView } from "./agent-view";
+import { CredentialForm } from "./credential-form";
+import { CredentialView } from "./credential-view";
 import { toast } from "@/components/ui/use-toast";
 import { getLatestVersion } from '@/features/personas/types';
 import '@/styles/fonts.css';
 import { DeleteConfirmationModal } from './delete-confirmation-modal';
 import { INITIAL_VERSION } from '@/features/personas/types';
+import { Credential, CredentialVersion } from '@/types/credentials';
 
-interface AgentDetailsModalProps {
+interface CredentialDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (id: string | null, data: Entity) => Promise<void>;
+  onSave: (id: string | null, data: Credential) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
-  item: Entity;
+  item?: Credential;
   isEditing?: boolean;
 }
 
-export function AgentDetailsModal({ isOpen, onClose, onSave, onDelete, item, isEditing: initialIsEditing = false }: AgentDetailsModalProps) {
-  const [isEditing, setIsEditing] = useState(initialIsEditing || !item?.id);
+export function CredentialDetailsModal({ isOpen, onClose, onSave, onDelete, item, isEditing: initialIsEditing = false }: CredentialDetailsModalProps) {
+  const [isEditing, setIsEditing] = useState(initialIsEditing);
   const [selectedVersion, setSelectedVersion] = useState(item?.version || 'v1.0');
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
 
-  const getCurrentVersionData = (): Entity => {
+  const getCurrentVersionData = (): Credential => {
+    if (!item) {
+      return formData;
+    }
+
     const versions = Array.isArray(item?.versions) ? item.versions : [{
       version: INITIAL_VERSION,
       data: {
         name: item?.name || '',
         version: INITIAL_VERSION,
+        url: item?.url || '',
         description: item?.description || '',
-        mainObjective: item?.mainObjective || '',
-        systemPrompt: item?.systemPrompt || '',
-        userPromptTemplate: item?.userPromptTemplate || '',
+        service: item?.service || '',
+        key: item?.key || '',
         notes: item?.notes || '',
-        picture: item?.picture || ''
+        picture: item?.picture || '',
+        expires_at: item?.expires_at || undefined,
+        is_active: item?.is_active ?? true
       }
     }];
     
@@ -47,28 +53,68 @@ export function AgentDetailsModal({ isOpen, onClose, onSave, onDelete, item, isE
     return {
       id: item?.id || '',
       name: item?.name || '',
-      version: selectedVersion,
+      url: item?.url || '',
       description: item?.description || '',
-      mainObjective: item?.mainObjective || '',
-      systemPrompt: item?.systemPrompt || '',
-      userPromptTemplate: item?.userPromptTemplate || '',
+      service: item?.service || '',
+      key: item?.key || '',
       notes: item?.notes || '',
       picture: versionData?.picture || item?.picture || '',
-      versions: versions
+      version: selectedVersion,
+      versions: versions as CredentialVersion[],
+      expires_at: item?.expires_at || undefined,
+      is_active: item?.is_active ?? true,
+      is_favorite: item?.is_favorite || false
     };
   };
 
-  const [formData, setFormData] = useState<Entity>(getCurrentVersionData());
+  const [formData, setFormData] = useState<Credential>(() => {
+    if (item) {
+      return getCurrentVersionData();
+    }
+    
+    // Initialize new credential with empty values
+    const initialVersion: CredentialVersion = {
+      version: INITIAL_VERSION,
+      data: {
+        name: '',
+        url: '',
+        description: '',
+        service: '',
+        key: '',
+        notes: '',
+        picture: '',
+        version: INITIAL_VERSION,
+        is_active: true,
+        expires_at: undefined
+      }
+    };
+
+    return {
+      id: '',
+      name: '',
+      url: '',
+      description: '',
+      service: '',
+      key: '',
+      notes: '',
+      picture: '',
+      version: INITIAL_VERSION,
+      versions: [initialVersion] as CredentialVersion[],
+      is_active: true,
+      is_favorite: false,
+      expires_at: undefined
+    };
+  });
 
   useEffect(() => {
     if (item) {
       setSelectedVersion(item.version || 'v1.0');
+      setIsEditing(initialIsEditing);
       setFormData(getCurrentVersionData());
     }
   }, [item]);
-
   const versions = Array.isArray(item?.versions) 
-    ? item.versions.map((v: EntityVersion) => ({
+    ? item.versions.map((v: CredentialVersion) => ({
         value: v.version,
         label: v.version
       })) 
@@ -80,7 +126,7 @@ export function AgentDetailsModal({ isOpen, onClose, onSave, onDelete, item, isE
 
     const handleVersionChange = (version: string) => {
         setSelectedVersion(version);
-        const versionData = item?.versions?.find((v: EntityVersion) => v.version === version)?.data;
+        const versionData = item?.versions?.find((v: CredentialVersion) => v.version === version)?.data;
         if (versionData) {
             setFormData({
             ...formData,
@@ -93,10 +139,20 @@ export function AgentDetailsModal({ isOpen, onClose, onSave, onDelete, item, isE
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await onSave(item?.id || null, formData);
+      const dataToSave = {
+        ...formData,
+        versions: formData.versions?.map(v => ({
+          version: v.version,
+          data: {
+            ...v.data,
+            is_active: true
+          }
+        }))
+      };
+      await onSave(item?.id || null, dataToSave);
       toast({
         title: "Success",
-        description: `Agent ${item.id ? 'updated' : 'created'} successfully`,
+        description: `Credential ${item?.id ? 'updated' : 'created'} successfully`,
         variant: "default",
       });
       onClose();
@@ -104,7 +160,7 @@ export function AgentDetailsModal({ isOpen, onClose, onSave, onDelete, item, isE
       console.error('Failed to save:', error);
       toast({
         title: "Error",
-        description: `Failed to ${item.id ? 'update' : 'create'} agent`,
+        description: `Failed to ${item?.id ? 'update' : 'create'} credential`,
         variant: "destructive",
       });
     } finally {
@@ -116,28 +172,28 @@ export function AgentDetailsModal({ isOpen, onClose, onSave, onDelete, item, isE
     const newVersion = getLatestVersion(selectedVersion);
     
     const newVersionData = {
-        name: formData.name,
-        version: newVersion,
-        description: formData.description,
-        mainObjective: formData.mainObjective,
-        systemPrompt: formData.systemPrompt,
-        userPromptTemplate: formData.userPromptTemplate,
-        notes: formData.notes || '',
-        picture: ''
-      };
+      name: formData.name,
+      version: newVersion,
+      url: formData.url,
+      description: formData.description,
+      service: formData.service,
+      key: formData.key,
+      notes: formData.notes || '',
+      picture: '',
+      expires_at: formData.expires_at
+    };
 
-    const updatedVersions = [
-      ...(item.versions || []),
-      { 
-        version: newVersion, 
-        data: newVersionData 
-      }
-    ];
 
     setFormData({
       ...formData,
       version: newVersion,
-      versions: updatedVersions
+      versions: [...(item?.versions || []), {
+        version: newVersion,
+        data: {
+          ...newVersionData,
+          is_active: true
+        }
+      }]
     });
     
     setSelectedVersion(newVersion);
@@ -177,29 +233,29 @@ export function AgentDetailsModal({ isOpen, onClose, onSave, onDelete, item, isE
       <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
         className="max-w-3xl bg-[#FBF9FC]/95 backdrop-blur-md border-[#F58C5D]/20"
-        aria-describedby="agents-modal-description"
+        aria-describedby="credentials-modal-description"
       >
           <DialogHeader>
           <DialogTitle className="text-xl font-nord-bold text-[#383244]">
-            {item?.id ? item.name : 'New Agent'}
+            {item?.id ? item.name : 'New Credential'}
             </DialogTitle>
-            <DialogDescription id="agents-modal-description">
+            <DialogDescription id="credentials-modal-description">
               {item?.id 
-                ? `Details and configuration for the ${item.name} agent`
-                : 'Configure a new agent'}
+                ? `Details and configuration for the ${item.name} credential`
+                : 'Configure a new credential'}
             </DialogDescription>
           </DialogHeader>
 
           <ScrollArea className="max-h-[70vh] pr-4">
           <div className="space-y-6 p-2">
             {isEditing ? (
-                  <AgentForm
+                  <CredentialForm
                     data={formData}
                     onChange={handleChange}
                     isNewVersion={false}
                   />
                 ) : (
-                  <AgentView 
+                  <CredentialView 
                     data={formData}
                     versions={versions}
                   currentVersion={selectedVersion}
@@ -260,7 +316,7 @@ export function AgentDetailsModal({ isOpen, onClose, onSave, onDelete, item, isE
           isOpen={showDeleteConfirmation}
           onClose={() => setShowDeleteConfirmation(false)}
           onConfirm={handleConfirmDelete}
-          entityType="Agent"
+          entityType="Credential"
           itemName={item?.name || ''}
         />
     </Dialog>

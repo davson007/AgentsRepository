@@ -3,7 +3,7 @@ import type { AIPersona } from '@/types';
 
 export async function getPersonas() {
   const { data, error } = await supabase
-    .from('personas')
+    .from('ai_personas')
     .select('*');
   
   if (error) throw error;
@@ -12,7 +12,7 @@ export async function getPersonas() {
 
 export async function getPersonaById(id: string) {
   const { data, error } = await supabase
-    .from('personas')
+    .from('ai_personas')
     .select('*')
     .eq('id', id)
     .single();
@@ -23,7 +23,7 @@ export async function getPersonaById(id: string) {
 
 export async function createPersona(persona: Omit<AIPersona, 'id'>) {
   const { data, error } = await supabase
-    .from('personas')
+    .from('ai_personas')
     .insert([persona])
     .select()
     .single();
@@ -34,7 +34,7 @@ export async function createPersona(persona: Omit<AIPersona, 'id'>) {
 
 export async function updatePersona(id: string, updates: Partial<AIPersona>) {
   const { data, error } = await supabase
-    .from('personas')
+    .from('ai_personas')
     .update(updates)
     .eq('id', id)
     .select()
@@ -46,7 +46,7 @@ export async function updatePersona(id: string, updates: Partial<AIPersona>) {
 
 export async function deletePersona(id: string) {
   const { error } = await supabase
-    .from('personas')
+    .from('ai_personas')
     .delete()
     .eq('id', id);
   
